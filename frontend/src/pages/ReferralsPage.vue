@@ -11,37 +11,30 @@ export default { setup: useDashboard }
                cash tier is hand-approved on purpose — hand-approval IS the anti-gaming design
                (money.md §Referrals) — so it is a form, not a self-serve toggle, and it shows to
                everyone, team or not, so a partner without a team yet can still apply. -->
-          <h1>{{refTab==='partner' ? 'Affiliate partner' : 'Refer a friend'}}</h1>
-          <p class="sub" v-if="refTab==='partner'">Revenue share, paid in cash. By invitation.</p>
-          <p class="sub" v-else :style="ref.loaded ? null : {visibility:'hidden'}">They get {{money(ref.terms.referred_micro)}} when they add
-            {{money(ref.terms.min_topup_micro)}}. You get {{money(ref.terms.referrer_micro)}},
-            {{ref.terms.hold_days}} days later.</p>
+          <h1>{{refTab==='partner' ? t('referrals.affiliatePartner') : t('referrals.referFriend')}}</h1>
+          <p class="sub" v-if="refTab==='partner'">{{ t('referrals.partnerSub') }}</p>
+          <p class="sub" v-else :style="ref.loaded ? null : {visibility:'hidden'}">{{ t('referrals.friendSub', { referred: money(ref.terms.referred_micro), min: money(ref.terms.min_topup_micro), referrer: money(ref.terms.referrer_micro), days: ref.terms.hold_days }) }}</p>
           <div class="tabs" style="max-width:720px">
-            <button :class="{active:refTab==='friend'}" @click="refTab='friend'">Refer a friend</button>
-            <button :class="{active:refTab==='partner'}" @click="refTab='partner'">Affiliate partner</button>
+            <button :class="{active:refTab==='friend'}" @click="refTab='friend'">{{ t('referrals.referFriend') }}</button>
+            <button :class="{active:refTab==='partner'}" @click="refTab='partner'">{{ t('referrals.affiliatePartner') }}</button>
           </div>
           <div v-if="refTab==='partner'" style="max-width:720px">
             <div class="card">
-              <div class="lbl">Who it's for</div>
-              <p class="sub" style="margin:6px 0 0">People who send real volume: an audience, a newsletter,
-                a community, or a team that builds on treg for clients.</p>
-              <div class="lbl" style="margin-top:16px">What you earn</div>
-              <p class="sub" style="margin:6px 0 0">A share of what your referrals top up, paid to you in
-                cash monthly. Not credit, and no {{ref.cap.limit}}-referral cap.</p>
-              <div class="lbl" style="margin-top:16px">How to get in</div>
-              <p class="sub" style="margin:6px 0 14px">Invite only. Tell us about your audience and how
-                you'd send people to treg, and we'll get back to you.</p>
+              <div class="lbl">{{ t('referrals.whoFor') }}</div>
+              <p class="sub" style="margin:6px 0 0">{{ t('referrals.whoForText') }}</p>
+              <div class="lbl" style="margin-top:16px">{{ t('referrals.whatEarn') }}</div>
+              <p class="sub" style="margin:6px 0 0">{{ t('referrals.whatEarnText', { limit: ref.cap.limit }) }}</p>
+              <div class="lbl" style="margin-top:16px">{{ t('referrals.howToGetIn') }}</div>
+              <p class="sub" style="margin:6px 0 14px">{{ t('referrals.howToGetInText') }}</p>
               <a class="btn primary sm" href="https://forms.gle/5N3DyVPrNJkrGuxF6" target="_blank"
-                 rel="noopener" @click="track('affiliate_apply_clicked')" style="text-decoration:none">Apply to be an affiliate partner</a>
+                 rel="noopener" @click="track('affiliate_apply_clicked')" style="text-decoration:none">{{ t('referrals.applyButton') }}</a>
             </div>
-            <p class="sub" style="margin:12px 0 0">Just want to tell a friend? The
-              <a href="#" @click.prevent="refTab='friend'">refer-a-friend</a> program pays
-              {{money(ref.terms.referrer_micro)}} in credit per friend, no application needed.</p>
+            <p class="sub" style="margin:12px 0 0">{{ t('referrals.justFriendLead') }}<a href="#" @click.prevent="refTab='friend'">{{ t('referrals.referAFriend') }}</a>{{ t('referrals.justFriendTail', { amount: money(ref.terms.referrer_micro) }) }}</p>
           </div>
 
           <template v-if="refTab==='friend'">
 
-          <p v-if="ref.loading" class="sub">Loading…</p>
+          <p v-if="ref.loading" class="sub">{{ t('common.loading') }}</p>
           <!-- ONE column for the whole view. The children carry no max-width of their own: three
                different ones is what made the card, the tiles and the table start and end at three
                different x-positions. -->
@@ -51,22 +44,20 @@ export default { setup: useDashboard }
                  This branch is now only the degenerate case (no team to pay the reward into), kept
                  because the reward has to land SOMEWHERE and a silent zero is the worst version. -->
             <div v-if="!ref.eligible" class="card" style="margin-top:14px">
-              <div class="lbl">Create a team to unlock your link</div>
-              <p class="sub" style="margin:6px 0 12px">Referral rewards are paid as credit into a
-                team you own, so you'll need one first.</p>
-              <button class="btn primary sm" @click="go('orgs')">Go to teams</button>
+              <div class="lbl">{{ t('referrals.createTeamTitle') }}</div>
+              <p class="sub" style="margin:6px 0 12px">{{ t('referrals.createTeamText') }}</p>
+              <button class="btn primary sm" @click="go('orgs')">{{ t('referrals.goToTeams') }}</button>
             </div>
 
             <template v-else>
               <div class="card" style="margin-top:14px">
-                <div class="lbl">Your link</div>
+                <div class="lbl">{{ t('referrals.yourLink') }}</div>
                 <div style="display:flex;gap:8px;margin-top:8px">
                   <input readonly :value="ref.link" @focus="$event.target.select()"
                          style="flex:1;min-width:0;font-family:var(--mono);font-size:12px">
-                  <button class="btn sm" @click="copyRefLink" style="flex:none">{{refCopied?'Copied':'Copy'}}</button>
+                  <button class="btn sm" @click="copyRefLink" style="flex:none">{{refCopied ? t('common.copied') : t('common.copy')}}</button>
                 </div>
-                <p class="sub" style="margin:10px 0 0" v-if="ref.credit_org">
-                  Your reward lands in <b>{{ref.credit_org.name}}</b>.</p>
+                <p class="sub" style="margin:10px 0 0" v-if="ref.credit_org" v-html="t('referrals.rewardLands', { name: '<b>'+ref.credit_org.name+'</b>' })"></p>
               </div>
 
               <!-- `.stat` expects `.n` (the figure) then `.l` (the label), in that order — any other
@@ -77,31 +68,29 @@ export default { setup: useDashboard }
                    right edge while the card above and the table below reach it. auto-fit collapses
                    the empty track and the three stretch to fill. -->
               <div class="statgrid" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-                <div class="stat"><div class="n">{{ref.totals.signed_up}}</div><div class="l">signed up</div></div>
-                <div class="stat"><div class="n">{{ref.totals.topped_up}}</div><div class="l">topped up</div></div>
-                <div class="stat"><div class="n">{{money(ref.totals.earned_micro)}}</div><div class="l">earned</div></div>
+                <div class="stat"><div class="n">{{ref.totals.signed_up}}</div><div class="l">{{ t('referrals.statSignedUp') }}</div></div>
+                <div class="stat"><div class="n">{{ref.totals.topped_up}}</div><div class="l">{{ t('referrals.statToppedUp') }}</div></div>
+                <div class="stat"><div class="n">{{money(ref.totals.earned_micro)}}</div><div class="l">{{ t('referrals.statEarned') }}</div></div>
               </div>
               <p v-if="ref.totals.pending_micro" class="sub" style="margin:-8px 0 0">
-                {{money(ref.totals.pending_micro)}} on the way — rewards land
-                {{ref.terms.hold_days}} days after your friend adds funds.</p>
+                {{ t('referrals.pending', { amount: money(ref.totals.pending_micro), days: ref.terms.hold_days }) }}</p>
 
               <!-- The cap refusal IS the commercial conversation, same posture as a daily-cap
                    refusal: it names the limit and points at a human rather than silently paying 0. -->
               <div v-if="ref.cap.paid >= ref.cap.limit" class="card"
                    style="margin-top:14px;border-color:var(--accent)">
-                <div class="lbl">You've hit the {{ref.cap.limit}}-referral limit</div>
-                <p class="sub" style="margin:6px 0 0">That's as far as the self-serve program goes.
-                  If you're sending real volume, switch to the Affiliate partner tab above — we pay affiliate partners in cash.</p>
+                <div class="lbl">{{ t('referrals.hitLimit', { limit: ref.cap.limit }) }}</div>
+                <p class="sub" style="margin:6px 0 0">{{ t('referrals.hitLimitText') }}</p>
               </div>
 
-              <div class="grp" style="margin:20px 0 8px">Your referrals</div>
+              <div class="grp" style="margin:20px 0 8px">{{ t('referrals.yourReferrals') }}</div>
               <p v-if="!ref.referrals.length" class="sub" style="margin:0">
-                Nobody yet. Share your link above.</p>
+                {{ t('referrals.nobodyYet') }}</p>
               <!-- House-style table: bare `<table>` is ALREADY a card (background, border, radius)
                    and `th,td` already carry 10px/13px padding. Overriding that padding to `8px 0`
                    is what pushed the amount flush against the card's own right edge. -->
               <table v-else>
-                <tr><th>Who</th><th>Signed up</th><th>Status</th><th style="text-align:right">Reward</th></tr>
+                <tr><th>{{ t('referrals.thWho') }}</th><th>{{ t('referrals.thSignedUp') }}</th><th>{{ t('referrals.thStatus') }}</th><th style="text-align:right">{{ t('referrals.thReward') }}</th></tr>
                 <tr v-for="(r,i) in ref.referrals" :key="i">
                   <td>{{r.email || '—'}}</td>
                   <td class="sub" style="white-space:nowrap">{{bhistDate(r.signed_up_at)}}</td>

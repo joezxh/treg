@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>让 AI 主动推荐你的产品 —— AEO 工作流（中文版）| treg</title>
+<meta name="description" content="四步 AEO 工作流，由你的编码代理一键执行：找到客户在问什么，看清 ChatGPT、豆包、百度等答案引擎推荐谁、引用哪些站点，再把你的产品送上去。一个提示词，一次审计约 $0.30。"/>
+<link rel="canonical" href="{BASE}/zh/aeo"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Article","name":"让 AI 主动推荐你的产品 —— AEO 工作流","url":"{BASE}/zh/aeo","inLanguage":"zh-CN",
+ "description":"四步 AEO 工作流：找问题、看推荐、拆引用、上清单，由编码代理一键执行。"}
+</script>
+<style>
+:root{--ink:#1a1a1a;--sub:#6d6d6d;--line:#e8e5df}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);line-height:1.75}
+a{color:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;gap:16px;padding:20px 0;font-size:14px}
+nav .brand{font-weight:700;font-size:17px;text-decoration:none;margin-right:auto}
+nav a{text-decoration:none;color:var(--sub)}nav a:hover{color:var(--ink)}
+h1{font-size:clamp(26px,4.6vw,38px);line-height:1.3;margin:32px 0 12px}
+.lede{color:var(--sub);font-size:16.5px}
+.meta{color:var(--sub);font-size:13.5px;margin-top:8px}
+.step{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:22px 0}
+.step h2{margin:0 0 8px;font-size:19px}
+.step p{margin:6px 0;color:#3c3c3c;font-size:14.8px}
+.step .tools{margin-top:10px;font-size:13px;color:var(--sub)}
+.step .tools code{background:#f0eee9;border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.chips{margin-top:10px}
+.chips a{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-size:12.5px;text-decoration:none;margin:0 8px 8px 0;background:#fff}
+.pill{display:inline-block;background:var(--ink);color:#f8f8f7;text-decoration:none;border-radius:999px;padding:12px 26px;font-size:14.5px;margin-top:14px}
+footer{margin-top:56px;padding:24px 0 40px;border-top:1px solid var(--line);color:var(--sub);font-size:13.5px}
+.socials a{margin-right:14px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <a class="brand" href="/zh">treg</a>
+  <a href="/zh">首页</a>
+  <a href="/aeo" hreflang="en">English</a>
+</nav>
+
+<h1>让 AI 主动推荐你的产品：<br>四步 AEO 工作流（中文版）</h1>
+<p class="lede">ChatGPT、豆包、百度在回答「哪家 CRM 适合小团队」时推荐了你的竞品，而不是你。
+AEO（答案引擎优化）就是改变这件事的方法：搞清楚客户在问什么、AI 现在推荐谁、引用哪些站点，
+再把你的产品送上那些站点。整个流程由你的编码代理（Claude Code / Codex 等）经 treg 一键执行。</p>
+<p class="meta">按提示词计费（约 1¢/次），一次完整审计约 $0.30，无订阅。</p>
+
+<div class="step">
+  <h2>第一步 · 找到客户真正在问什么</h2>
+  <p>从社区与搜索结果中汇总目标客户的高频问题——AI 只会回答被问出的问题。问题清单是后续每一步的输入。</p>
+  <div class="tools">经 treg 调用：<code>search1api.x.search</code>（支持 baidu / quark / 360 / wechat 等国内引擎）等检索类接口。</div>
+</div>
+
+<div class="step">
+  <h2>第二步 · 看清每个引擎现在推荐谁</h2>
+  <p>把问题并行发给各个答案引擎，记录：谁被点名、排第几、引用了哪些站点。国内入口同样覆盖：</p>
+  <div class="tools">
+    豆包（字节）：<code>justoneapi.x.llm-doubao-answer-v1</code> ·
+    百度 SERP：<code>serpapi.x.baidu-search</code> ·
+    Kimi 月之暗面 / 腾讯元宝 / 百度文心一言 / 通义千问 / DeepSeek：目录内对应检索接口 ·
+    ChatGPT / Gemini / Perplexity / AI Mode：见<a href="/aeo" hreflang="en">英文版</a>
+  </div>
+  <div class="chips">
+    <a href="/catalog?q=doubao">豆包 Doubao</a>
+    <a href="/catalog?q=baidu">百度 SERP</a>
+    <a href="/catalog?q=kimi">Kimi 月之暗面</a>
+    <a href="/catalog?q=yuanbao">腾讯元宝 Yuanbao</a>
+    <a href="/catalog?q=ernie">百度文心一言 ERNIE</a>
+    <a href="/catalog?q=qwen">通义千问 Qwen</a>
+    <a href="/catalog?q=deepseek">DeepSeek</a>
+    <a href="/catalog?q=ai-search">全部 AI 检索接口</a>
+  </div>
+</div>
+
+<div class="step">
+  <h2>第三步 · 拆解 AI 引用了哪些站点</h2>
+  <p>对每个答案统计引用来源：被引次数、出现比例、可见度得分，找出「AI 信任的站点清单」——这些就是你产品要出现的地方。</p>
+  <div class="tools">评分与去重可在本地完成，无需额外调用。</div>
+</div>
+
+<div class="step">
+  <h2>第四步 · 把产品送上被引用的站点</h2>
+  <p>对入选站点逐个落地：内容合作、真实评价、技术文档收录。下一轮审计对比本轮基线，验证可见度变化。</p>
+  <div class="tools">回访复测使用与第二步相同的引擎清单，数据可直接对比。</div>
+</div>
+
+<a class="pill" href="/app?ref=zh-aeo">用 treg 跑一遍这个工作流</a>
+
+<footer>
+  <div class="socials">{SOCIAL_LINKS}</div>
+  <p style="margin-top:14px"><a href="/aeo" hreflang="en">English AEO workflow</a> · <a href="/zh">返回中文首页</a></p>
+</footer>
+</div>
+</body>
+</html>

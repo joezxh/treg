@@ -48,13 +48,17 @@ covers (frontmatter `sources:`). Regenerate this index with
 | [The API — the only brain (FastAPI)](interface/api.md) | shipped | key_spend.py, media.py, sitetrack.js, api.py, … |
 | [The CLI (treg) + skill scaffolding](interface/cli.md) | shipped | cli.py, cli_view.py, home.py, test_released_cli_compat.py, … |
 | [The web dashboard (served from FastAPI)](interface/dashboard.md) | shipped | App.vue, TeamShowcase.vue, TeamAvatar.vue, UserAvatarDialog.vue, … |
-| [Enrich Arena - paid comparisons, one-click feedback, and visible waterfalls](interface/enrich-arena.md) | shipped | arena.py, arena.py, arena.py, models.py, … |
-| [Import - scan a .env, a skills dir or the machine's CLIs and register them as tools](interface/env-import.md) | shipped | providers.py, skills.py |
-| [Onboarding - first run in the dashboard and `treg onboard`](interface/onboarding.md) | shipped | auth.py, __init__.py, demo.py, first_run.py, … |
-| [Search surfaces - robots, sitemap, the crawlable catalog, and the social card](interface/seo.md) | shipped | api.py, web.py, agent_pages.py, robots.txt, … |
-| [Shell mode (treg shell) - transparent CLI interception](interface/shell.md) | shipped | shell.py, cli.py |
-| [The shippable treg skill and its distribution doors](interface/skill.md) | shipped | skill.md, integrate.md, install.sh, SKILL.md, … |
-| [Web Arena - private comparisons and live provider observations](interface/web-arena.md) | gated | web_arena.py, web_arena_scores.py, web_arena.py, web_arena_quality.py, … |
+| [Enrich Arena — paid comparisons, one-click feedback, and visible waterfalls](interface/enrich-arena.md) | shipped | arena.py, arena.py, arena.py, models.py, … |
+| [Import — scan a .env AND/OR a skills dir, auto-register as tools + bundles](interface/env-import.md) | in-progress | providers.py, skills.py |
+| [The internal LLM — a private SystemOne endpoint in front of the judge and the JEV check](interface/internal-llm.md) | shipped | llm.py, judge.py, web_arena_quality.py, find_index.py, catalog_find.py, search_experiment.py, config.py |
+| [Landing sandbox backend - closed](interface/landing-sandbox.md) | closed | sandbox.py, sandbox_identity.py, sandbox.py, __init__.py, … |
+| [Onboarding — the first-run demo team (dashboard + CLI)](interface/onboarding.md) | shipped | auth.py, __init__.py, demo.py, first_run.py, … |
+| [Search surfaces — robots, sitemap, the crawlable catalog, and the social card](interface/seo.md) | shipped | api.py, web.py, agent_pages.py, robots.txt, … |
+| [Shell mode (treg shell) — transparent CLI interception](interface/shell.md) | shipped | shell.py, cli.py |
+| [Test cases for the ChatGPT plugin submission](interface/skill-openai-test-cases.md) | reference | — |
+| [Tool justifications for the ChatGPT plugin submission](interface/skill-openai-tool-justifications.md) | reference | — |
+| [The shippable tools-registry skill (3 personas)](interface/skill.md) | shipped | skill.md, integrate.md, SKILL.md, SKILL.md, … |
+| [Web Arena — private comparisons and live provider observations](interface/web-arena.md) | gated | web_arena.py, web_arena_scores.py, web_arena.py, web_arena_quality.py, … |
 
 ## Ops (deploy, scale)
 

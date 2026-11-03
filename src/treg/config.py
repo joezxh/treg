@@ -550,6 +550,19 @@ class Settings(BaseSettings):
     # finds a minute; the per-deployment cap is what bounds the bill.
     find_max_per_ip_hour: int = 120
     find_max_per_hour: int = 3000
+    # A PRIVATE SystemOne-compatible endpoint — Alibaba Bailian's decision model
+    # (`{base_url}/systemone`, e.g. https://llm-….cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+    # with model `decision-model-preview`) or a self-hosted SystemOne speaking the same wire
+    # format TypeSafe's Jev API does ({state, model, questions} → {answers, usage}). ALL THREE of
+    # base_url, api_key and model set = the relevance judge (application.catalog_find,
+    # application.search_experiment) and the Web Arena JEV check (application/web_arena_quality.py)
+    # ask it instead of TypeSafe / the Vercel AI Gateway; anything empty = the original suppliers,
+    # unchanged. Env only, never a Secret row, never logged.
+    systemone_base_url: str = ""
+    systemone_api_key: str = Field(default="", repr=False)   # the DashScope key, for Bailian
+    systemone_model: str = ""       # e.g. decision-model-preview; never falls back to typesafe_model
+    systemone_timeout_s: float = 8.0  # decision models answer slower than the 2.5s judge budget
+    systemone_auth_scheme: str = "bearer"  # bearer | raw — how Authorization carries the key
     # DEFAULT per-org, per-UTC-day limit on tier-4 spend, for a team that has not set its own
     # `Org.daily_cap_micro`. 0 = no default limit. A team may set its own figure to anything,
     # including 0 for no limit — the limit is the team's protection against a runaway agent

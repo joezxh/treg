@@ -145,14 +145,14 @@ onBeforeUnmount(() => {
 <template>
   <div class="ttp" data-testid="tt-form">
     <div v-if="!accounts.length" class="banner" style="margin:0" data-testid="tt-connect">
-      <template v-if="tiktoks.length">Your TikTok connection can read but not publish. Reconnect it with <b>Read and publish</b>.</template>
-      <template v-else>Connect the TikTok account to post to, with <b>Read and publish</b>.</template>
-      <div style="margin-top:10px"><button class="btn sm primary" @click="d.openProvider('tiktok'); d.closeEpTry()">Connect TikTok</button></div>
+      <template v-if="tiktoks.length">{{t('ttk.readNoPublish')}} <b>{{t('ttk.readPublish')}}</b>.</template>
+      <template v-else>{{t('ttk.connectToPost')}} <b>{{t('ttk.readPublish')}}</b>.</template>
+      <div style="margin-top:10px"><button class="btn sm primary" @click="d.openProvider('tiktok'); d.closeEpTry()">{{t('ttk.connectTikTok')}}</button></div>
     </div>
 
     <template v-else>
       <div v-if="accounts.length > 1 && (phase === 'pick' || phase === 'details')" class="field" style="max-width:520px;margin-bottom:12px">
-        <label>Account</label>
+        <label>{{t('ttk.account')}}</label>
         <select v-model="account" data-testid="tt-account">
           <option v-for="c in accounts" :key="c.name" :value="c.name">{{ c.resource_name || c.name }} ({{ c.name }})</option>
         </select>
@@ -160,42 +160,42 @@ onBeforeUnmount(() => {
 
       <div class="who" v-if="creator && creator.ok" data-testid="tt-creator">
         <img v-if="creator.creator_avatar_url" :src="creator.creator_avatar_url" alt="" referrerpolicy="no-referrer">
-        <div><div class="lbl">Posting to</div><strong>{{ creator.creator_nickname }}</strong> <span class="muted" v-if="creator.creator_username">@{{ creator.creator_username }}</span></div>
+        <div><div class="lbl">{{t('ttk.postingTo')}}</div><strong>{{ creator.creator_nickname }}</strong> <span class="muted" v-if="creator.creator_username">@{{ creator.creator_username }}</span></div>
       </div>
-      <p v-else-if="creator" class="err">TikTok says this account cannot post right now: {{ creator.error?.message }}</p>
-      <p v-else class="sub">Loading your TikTok account…</p>
+      <p v-else-if="creator" class="err">{{t('ttk.cannotPost')}} {{ creator.error?.message }}</p>
+      <p v-else class="sub">{{t('ttk.loadingAccount')}}</p>
 
       <!-- STEP 1: choose the video; it plays here from your computer, nothing is uploaded yet -->
       <template v-if="phase === 'pick'">
-        <div class="lbl">1 · Choose a video</div>
+        <div class="lbl">{{t('ttk.step1Video')}}</div>
         <input type="file" :accept="VIDEO_TYPES.join(',')" @change="pickFile" data-testid="tt-file">
         <p v-if="fileErr" class="err">{{ fileErr }}</p>
         <video v-if="preview" :src="preview" controls playsinline preload="metadata" class="pv" data-testid="tt-preview"
                @loadedmetadata="seconds = Math.round(($event.target as HTMLVideoElement).duration)"></video>
         <p v-if="lengthErr" class="err">{{ lengthErr }}</p>
-        <p class="muted small">The video stays on your computer until you click Post. Then it goes straight to TikTok.</p>
-        <button class="btn primary" :disabled="!canNext" @click="phase = 'details'" data-testid="tt-next">Next</button>
+        <p class="muted small">{{t('ttk.staysLocal')}}</p>
+        <button class="btn primary" :disabled="!canNext" @click="phase = 'details'" data-testid="tt-next">{{t('ttk.next')}}</button>
       </template>
 
       <!-- STEP 2: TikTok's required post settings; nothing is preset for you -->
       <form v-else-if="phase === 'details' || phase === 'uploading'" class="fields" @submit.prevent="post">
-        <div class="lbl">2 · Post settings</div>
+        <div class="lbl">{{t('ttk.step2Settings')}}</div>
         <video :src="preview" controls playsinline preload="metadata" class="pv small-pv"></video>
 
-        <label class="lbl" for="tt-title">Title</label>
+        <label class="lbl" for="tt-title">{{t('ttk.title')}}</label>
         <textarea id="tt-title" v-model="form.title" maxlength="2200" rows="3" :disabled="phase !== 'details'"></textarea>
 
-        <label class="lbl" for="tt-privacy">Who can view this video</label>
+        <label class="lbl" for="tt-privacy">{{t('ttk.whoCanView')}}</label>
         <select id="tt-privacy" v-model="form.privacy_level" :disabled="phase !== 'details'" data-testid="tt-privacy">
-          <option value="" disabled>Select</option>
+          <option value="" disabled>{{t('ttk.select')}}</option>
           <option v-for="o in privacy" :key="o.value" :value="o.value" :disabled="o.disabled"
                   :title="o.disabled ? BRANDED_PRIVATE : ''">{{ o.label }}</option>
         </select>
 
-        <div class="lbl">Allow users to</div>
+        <div class="lbl">{{t('ttk.allowUsers')}}</div>
         <div class="checks">
           <label v-for="b in boxes" :key="b.key" :class="{ off: b.disabled }"
-                 :title="b.disabled ? 'Turned off in your TikTok settings' : ''">
+                 :title="b.disabled ? t('ttk.turnedOff') : ''">
             <input type="checkbox" v-model="form[b.key]" :disabled="b.disabled || phase !== 'details'"> {{ b.label }}
           </label>
         </div>
@@ -204,14 +204,14 @@ onBeforeUnmount(() => {
           <label class="switch">
             <input type="checkbox" :checked="form.disclose" :disabled="phase !== 'details'"
                    @change="setDisclose(($event.target as HTMLInputElement).checked)" data-testid="tt-disclose">
-            <span><strong>Disclose video content</strong><br>
-            <span class="muted">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</span></span>
+            <span><strong>{{t('ttk.disclose')}}</strong><br>
+            <span class="muted">{{t('ttk.discloseNote')}}</span></span>
           </label>
           <div v-if="form.disclose" class="checks col">
-            <label><input type="checkbox" v-model="form.your_brand"> <span><strong>Your brand</strong><br><span class="muted">You are promoting yourself or your own business. This video will be classified as Brand Organic.</span></span></label>
+            <label><input type="checkbox" v-model="form.your_brand"> <span><strong>{{t('ttk.yourBrand')}}</strong><br><span class="muted">{{t('ttk.yourBrandNote')}}</span></span></label>
             <label :class="{ off: brandedDisabled(form) }" :title="brandedDisabled(form) ? BRANDED_PRIVATE : ''">
               <input type="checkbox" v-model="form.branded_content" :disabled="brandedDisabled(form)">
-              <span><strong>Branded content</strong><br><span class="muted">You are promoting another brand or a third party. This video will be classified as Branded Content.</span></span>
+              <span><strong>{{t('ttk.brandedContent')}}</strong><br><span class="muted">{{t('ttk.brandedContentNote')}}</span></span>
             </label>
             <p v-if="brandedDisabled(form)" class="muted small">{{ BRANDED_PRIVATE }}</p>
             <p v-if="labelPrompt(form)" class="note">{{ labelPrompt(form) }}</p>
@@ -220,15 +220,15 @@ onBeforeUnmount(() => {
 
         <label class="switch aigc">
           <input type="checkbox" v-model="form.is_aigc" :disabled="phase !== 'details'">
-          <span><strong>AI-generated content</strong><br><span class="muted">Turn on if this video was made or changed with AI. TikTok labels it.</span></span>
+          <span><strong>{{t('ttk.aigc')}}</strong><br><span class="muted">{{t('ttk.aigcNote')}}</span></span>
         </label>
 
         <p class="consent" data-testid="tt-consent"><template v-for="part in declaration(form)" :key="part.text"><a v-if="part.href" :href="part.href" target="_blank" rel="noopener">{{ part.text }}</a><template v-else>{{ part.text }}</template></template></p>
-        <p class="muted small">After you post, it can take a few minutes for TikTok to process the video and show it on your profile.</p>
+        <p class="muted small">{{t('ttk.afterPost')}}</p>
         <div class="actions">
-          <button class="btn" type="button" :disabled="phase !== 'details'" @click="phase = 'pick'">Back</button>
+          <button class="btn" type="button" :disabled="phase !== 'details'" @click="phase = 'pick'">{{t('ttk.back')}}</button>
           <span :title="problem === PICK_ONE ? PICK_ONE : ''">
-            <button class="btn primary" type="submit" :disabled="!!problem || phase !== 'details'" data-testid="tt-post">{{ phase === 'uploading' ? 'Posting…' : 'Post' }}</button>
+            <button class="btn primary" type="submit" :disabled="!!problem || phase !== 'details'" data-testid="tt-post">{{ phase === 'uploading' ? t('ttk.posting') : t('ttk.post') }}</button>
           </span>
           <span v-if="phase === 'uploading'" class="muted small">{{ progress }}</span>
           <span v-else-if="problem" class="muted small" data-testid="tt-blocker">{{ problem }}</span>
@@ -238,19 +238,19 @@ onBeforeUnmount(() => {
 
       <div v-else class="state" :class="phase" data-testid="tt-state">
         <template v-if="phase === 'processing'">
-          <strong>Posted. TikTok is processing your video.</strong>
-          <span>It can take a few minutes before the video is visible on your profile. This updates by itself.</span>
+          <strong>{{t('ttk.processing')}}</strong>
+          <span>{{t('ttk.processingNote')}}</span>
         </template>
         <template v-else-if="phase === 'done'">
-          <strong>Your video is on TikTok.</strong>
-          <a v-if="profile" :href="profile" target="_blank" rel="noopener">Open it on TikTok</a>
-          <span v-else>A private video has no public link. Find it in your TikTok profile.</span>
+          <strong>{{t('ttk.onTikTok')}}</strong>
+          <a v-if="profile" :href="profile" target="_blank" rel="noopener">{{t('ttk.openOnTikTok')}}</a>
+          <span v-else>{{t('ttk.privateNoLink')}}</span>
         </template>
         <template v-else>
-          <strong>TikTok did not publish this video.</strong>
+          <strong>{{t('ttk.notPublished')}}</strong>
           <span>{{ err }}</span>
         </template>
-        <div v-if="phase !== 'processing'"><button class="btn sm" @click="again">Post another video</button></div>
+        <div v-if="phase !== 'processing'"><button class="btn sm" @click="again">{{t('ttk.postAnother')}}</button></div>
       </div>
     </template>
   </div>

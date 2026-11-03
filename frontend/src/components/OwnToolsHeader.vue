@@ -1,6 +1,7 @@
 <script>
 import { useDashboard } from '../state/context'
 import PageTabs from './PageTabs.vue'
+import { t } from '../i18n/index'
 
 // The head of the three "Your own tools" pages (tools, secrets, team resources): the shelf's hero, and
 // the three as one tab row, the catalog's. The lede is the family's, so the tabs never move; each
@@ -8,13 +9,13 @@ import PageTabs from './PageTabs.vue'
 export default {
   components: { PageTabs },
   props: { current: { type: String, required: true } },
-  setup: useDashboard,
-  computed: {
+  setup() { const ctx = useDashboard(); ctx.t = t; return ctx },
+  methods: {
     tabs() {
       return [
-        { key: 'tools', label: 'Skills & tools' },
-        ...(this.canRegister ? [{ key: 'secrets', label: 'Secrets' }] : []),
-        { key: 'resources', label: 'Team resources' },
+        { key: 'tools', label: t('tools.skillsAndTools') },
+        ...(this.canRegister ? [{ key: 'secrets', label: t('tools.secrets') }] : []),
+        { key: 'resources', label: t('tools.teamResources') },
       ]
     },
   },
@@ -24,11 +25,11 @@ export default {
 <template>
 <header class="pl-hero pl-hero-row">
   <div>
-    <h1>Your own tools</h1>
-    <p class="pl-lede">Your team's APIs, CLIs and skills, and the keys behind them. Agents never hold the keys.</p>
+    <h1>{{ t('tools.title') }}</h1>
+    <p class="pl-lede">{{ t('tools.lede') }}</p>
   </div>
   <div class="pl-hero-a"><slot name="actions" /></div>
 </header>
-<PageTabs label="Your own tools" :tabs="tabs" :current="current" @select="go" />
+<PageTabs :label="t('tools.title')" :tabs="tabs" :current="current" @select="go" />
 <p v-if="$slots.default" class="cat-hint own-note"><slot /></p>
 </template>

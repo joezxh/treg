@@ -3236,6 +3236,13 @@ async def landing(request: Request, treg_session: str = Cookie(default=""),
     sso_result = (sso_error in {"domain", "failed", "expired", "link"} and
                   set(request.query_params.keys()) <= {"sso_error", "team"})
     if page.exists() and (not request.query_params or (ref and ref_only) or sso_result):
+        # A first visitor reading Chinese gets the Chinese homepage; an explicit choice (the
+        # treg-locale cookie the language switch sets) or any query string always wins. Only the
+        # bare / negotiates — a referral or SSO landing must stay exactly where it was sent.
+        if not request.query_params and (request.cookies.get("treg-locale") or (
+                "zh" if request.headers.get("accept-language", "").lower().startswith("zh") else "")) == "zh" \
+                and (_WEB_DIR / "zh" / "landing.html").exists():
+            return RedirectResponse("/zh", status_code=302, headers={"Vary": "Accept-Language"})
         signed_in = bool(treg_session and await _user_from_session(treg_session, db))
         # The email-code door signs in on the page that opened it and reloads there, and the
         # OAuth sign-in modal opens on `/`, so a parked authorization must resume here as well.
@@ -3246,6 +3253,8 @@ async def landing(request: Request, treg_session: str = Cookie(default=""),
             "{BASE}", get_settings().public_url.rstrip("/"))
         html = html.replace("{SIGNED_IN}", "true" if signed_in else "false")
         html = html.replace("{START_LABEL}", "Open dashboard" if signed_in else "Start free")
+        if tags := _hreflang_tags("landing.html", get_settings().public_url.rstrip("/"), "en"):
+            html = html.replace("</head>", tags + "</head>", 1)
         if signed_in:
             html = re.sub(r"<!--signed-out-->.*?<!--/signed-out-->", "", html, flags=re.S)
         # The footer's hub links point at hosted-only pages; a self-hosted landing drops them.
@@ -3442,6 +3451,9 @@ _SITEMAP_PAGES: tuple[tuple[str, str, str], ...] = (
     ("/gpt6", "astra.html", "0.8"),
     ("/ugc", "ugc.html", "0.8"),
     ("/aeo", "aeo.html", "0.8"),
+    # The Chinese mirrors: separate indexable URLs, hreflang-linked to their English pages.
+    ("/zh", "zh/landing.html", "0.8"),
+    ("/zh/aeo", "zh/aeo.html", "0.8"),
     ("/rankings", "rankings.html", "0.8"),
     ("/rea-growth", "rea-growth.html", "0.8"),
     ("/jev", "jev.html", "0.8"),
@@ -3805,19 +3817,68 @@ async def legal_css():
     return FileResponse(f, media_type="text/css", headers={"Cache-Control": "no-cache"})
 
 
-def _static_page(name: str, request: Request) -> Response:
+def _social_links_html(base: str, page_html: str) -> str:
+    """The marketing pages' social row, rendered from web/social.json — the same list
+    frontend/src/state/social.ts serves the dashboard. Anchors only; a page styles them.
+    A platform whose URL the page already links by icon is skipped, so a page can keep its
+    hand-drawn brand icons and pick up the rest of the list from one token."""
+    links = json.loads((_WEB_DIR / "social.json").read_text(encoding="utf-8"))["links"]
+    out = []
+    for link in links:
+        url = base + link["url"] if link["url"].startswith("/") else link["url"]
+        if link["kind"] == "link" and link["url"] in page_html:
+            continue
+        label = _html.escape(link["label"])
+        if link["kind"] == "qrcode":
+            # WeChat has no web profile: render the QR image, not a profile link.
+            out.append(
+                f'<a class="nav-social nav-social-qr" href="{_html.escape(url, quote=True)}" '
+                f'target="_blank" rel="noopener" aria-label="treg on {label}" '
+                f'style="text-decoration:none;opacity:.85;margin:0 6px;white-space:nowrap">'
+                f'<img src="{_html.escape(url, quote=True)}" alt="{label}" loading="lazy" '
+                f'style="width:84px;height:84px;border-radius:8px;vertical-align:middle;background:#fff"'
+                f'/>{label}</a>')
+            continue
+        out.append(f'<a class="nav-social nav-social-label" href="{_html.escape(url, quote=True)}" target="_blank" '
+                   f'rel="noopener" aria-label="treg on {label}" '
+                   f'style="font:inherit;text-decoration:none;opacity:.85;margin:0 6px;white-space:nowrap">{label}</a>')
+    return "".join(out)
+
+
+def _hreflang_tags(name: str, base: str, locale: str) -> str:
+    """Bilingual alternates: a page with a Chinese counterpart (web/zh/<name>) cross-links both,
+    whichever language is being served. Injected before </head>; an empty string adds nothing."""
+    if not (_WEB_DIR / "zh" / name).exists():
+        return ""
+    stem = name.removesuffix(".html")
+    en_url = base if stem == "landing" else f"{base}/{stem}"
+    zh_url = f"{base}/zh" if stem == "landing" else f"{base}/zh/{stem}"
+    tags = (f'<link rel="alternate" hreflang="en" href="{en_url}"/>'
+            f'<link rel="alternate" hreflang="zh-CN" href="{zh_url}"/>'
+            f'<link rel="alternate" hreflang="x-default" href="{en_url}"/>')
+    return tags
+
+
+def _static_page(name: str, request: Request, locale: str = "en") -> Response:
     """A bundled HTML page with its placeholders filled: `{BASE}` so each page's canonical and
     og:url name the host actually serving it (a hardcoded treg.to would tell a self-hosted
     registry's crawler that the real page lives on someone else's domain), and `{ENDPOINTS}` /
     `{PROVIDERS}` so the catalog's size is read from the catalog, never typed.
 
+    `locale="zh"` serves the Chinese mirror (web/zh/<name>) when it exists, 404 otherwise —
+    the /zh routes map the pages that have been translated, nothing else.
+
     no-cache: a page must not be served stale after we publish an update. The ETag keeps the
     revalidation a 304, as it was when these pages were plain FileResponses."""
-    page = _WEB_DIR / name
+    page = (_WEB_DIR / "zh" / name) if locale == "zh" else (_WEB_DIR / name)
     if not page.exists():
         raise HTTPException(status_code=404, detail=f"{name} not bundled")
     base = get_settings().public_url.rstrip("/")
     html = _strip_hosted(_fill_headline(page.read_text(encoding="utf-8"))).replace("{BASE}", base)
+    if "{SOCIAL_LINKS}" in html:
+        html = html.replace("{SOCIAL_LINKS}", _social_links_html(base, html))
+    if tags := _hreflang_tags(name, base, locale):
+        html = html.replace("</head>", tags + "</head>", 1)
     etag = '"' + hashlib.sha256(html.encode("utf-8")).hexdigest()[:32] + '"'
     headers = {"Cache-Control": "no-cache", "ETag": etag}
     # An edge that compresses the body weakens the tag (W/"..."), so compare the opaque part.
@@ -3981,6 +4042,20 @@ async def aeo_page(request: Request):
     one meta prompt that runs them. Indexed like /ugc: canonical, OG meta, in the sitemap,
     no-cache. Asset paths are relative (media/aeo/…)."""
     return _static_page("aeo.html", request)
+
+
+@app.get("/zh", include_in_schema=False)
+async def zh_landing(request: Request):
+    """The Chinese homepage (web/zh/landing.html). Its own canonical and JSON-LD, hreflang-linked
+    to the English one both ways; an explicit URL always wins over any negotiation."""
+    return _static_page("landing.html", request, locale="zh")
+
+
+@app.get("/zh/{page}", include_in_schema=False)
+async def zh_page(page: str, request: Request):
+    """A Chinese mirror page by name — only the pages that have a web/zh/<page>.html exist;
+    the rest 404 rather than pretending."""
+    return _static_page(f"{page}.html", request, locale="zh")
 
 
 @app.get("/rea-growth", include_in_schema=False)

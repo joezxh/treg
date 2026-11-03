@@ -39,6 +39,7 @@ from ..config import get_settings
 from ..domain.catalog import interleave
 from ..domain.catalog import store as catalog_store
 from ..infra import judge as judge_infra
+from .catalog_find import judge_endpoint
 
 MODES = ("off", "shadow", "interleave", "v2")
 ARM_SHADOW, ARM_BASELINE, ARM_JUDGED, ARM_INTERLEAVE, ARM_V2 = "shadow", "baseline", "judged", "interleave", "v2"
@@ -116,9 +117,10 @@ async def run(query: str, cat: catalog_store.Catalog, *, baseline: Rows, baselin
     cands = catalog_store.candidates(query, cat, max(1, int(s.search_experiment_candidates)))
     views = [judge_infra.candidate_view(ep, cat.capabilities.get(ep.get("capability") or "", ""))
              for ep, _ in cands]
-    verdict = await judge_infra.judge(
-        query, views, api_key=s.typesafe_api_key, model=s.typesafe_model, url=s.typesafe_url,
-        timeout_s=float(s.typesafe_timeout_s))
+    url, model, api_key, budget = judge_endpoint() or (s.typesafe_url, s.typesafe_model,
+                                                       s.typesafe_api_key, float(s.typesafe_timeout_s))
+    verdict = await judge_infra.judge(query, views, api_key=api_key, model=model, url=url,
+                                      timeout_s=budget)
 
     judged_page: Rows | None = None
     stats: dict[str, dict] = {}

@@ -13,11 +13,11 @@ export default { components: { FindAnswer, CatalogSearch }, setup: useDashboard 
   <!-- A title and the box: someone here came to look something up. Your own keys have their own page
        (Connections, in the nav); asking for a tool and listing one sit at the foot. -->
   <header class="pl-hero">
-    <h1>{{toolCountText ? toolCountText+' tools' : 'Tools'}} for agents</h1>
+    <h1>{{ t(toolCountText ? 'catalogPage.toolsCount' : 'catalogPage.toolsGeneric', { n: toolCountText }) }}</h1>
     <!-- One box, two questions: a platform name filters the shelves as you type; when typing pauses
          the finder answers above the filtered shelves, and Enter asks for
          the full answer (state/find.js). Clearing the box is how you leave an answer. -->
-    <CatalogSearch v-if="plats.list.length" v-model="q" placeholder="Search a platform, or describe what your agent needs to do" />
+    <CatalogSearch v-if="plats.list.length" v-model="q" :placeholder="t('catalogPage.searchPlaceholder')" />
   </header>
 
   <!-- A described job is answered above the shelves rather than instead of them: the shelves
@@ -25,7 +25,7 @@ export default { components: { FindAnswer, CatalogSearch }, setup: useDashboard 
   <FindAnswer v-if="findActive && !find.scope" class="pl-find" />
 
   <div class="mk-tabs-wrap" v-if="plats.list.length">
-    <div class="mk-tabs" role="tablist" aria-label="Catalog categories">
+    <div class="mk-tabs" role="tablist" :aria-label="t('catalogPage.categoriesAria')">
       <button v-for="t in mkTabs" :key="t.key" role="tab" :aria-selected="mkTab===t.key"
               :class="{on:mkTab===t.key}" @click="mkTab=t.key">{{t.label}} <span>{{t.n}}</span></button>
     </div>
@@ -40,8 +40,8 @@ export default { components: { FindAnswer, CatalogSearch }, setup: useDashboard 
       <button v-for="pl in g.items" :key="pl.slug" class="pl-card pl-tool cat-card"
               :class="{'find-hit':findFull && findHits[pl.slug], 'find-dim':findFull && find.phase==='done' && findGroups.length && !findHits[pl.slug]}"
               :title="pl.summary ? pl.label+': '+pl.summary : pl.label"
-              :aria-label="'Open '+pl.label" @click="openPlatform(pl.slug)">
-        <span v-if="findFull && findHits[pl.slug]" class="pt-find">{{findHits[pl.slug]}} match{{findHits[pl.slug]===1?'':'es'}}</span>
+              :aria-label="t('catalogPage.open', { name: pl.label })" @click="openPlatform(pl.slug)">
+        <span v-if="findFull && findHits[pl.slug]" class="pt-find">{{findHits[pl.slug]}} {{ t(findHits[pl.slug]===1 ? 'catalogPage.matchOne' : 'catalogPage.matchMany') }}</span>
         <!-- A platform's OWN mark, not its providers': the card is the platform. Anything we haven't
              drawn falls back to a generated initial tile, not a broken image. -->
         <span class="pl-logo lg" :class="{gen:platLogoBad[pl.slug]}"
@@ -58,15 +58,15 @@ export default { components: { FindAnswer, CatalogSearch }, setup: useDashboard 
             <span v-if="!publicCatalog && platOwn(pl).length" class="cat-own" role="img"
                   :title="platConnTitle(pl)" :aria-label="platConnTitle(pl)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg></span></span>
-          <span v-if="platPaused(pl)" class="pl-meta" :title="providerPaused(pl.providers[0]).message">Paused</span>
-          <span v-else class="pl-meta">{{pl.endpoints}} tool{{pl.endpoints===1?'':'s'}}<template v-if="platPrice(pl)"> · <span :title="platPriceTitle(pl)">{{platPrice(pl).free ? platPrice(pl).text : 'from '+platPrice(pl).text}}</span></template></span>
+          <span v-if="platPaused(pl)" class="pl-meta" :title="providerPaused(pl.providers[0]).message">{{ t('catalogPage.paused') }}</span>
+          <span v-else class="pl-meta">{{pl.endpoints}} {{ t(pl.endpoints===1 ? 'catalogPage.toolOne' : 'catalogPage.toolMany') }}<template v-if="platPrice(pl)"> · <span :title="platPriceTitle(pl)">{{platPrice(pl).free ? platPrice(pl).text : t('catalogPage.from')+' '+platPrice(pl).text}}</span></template></span>
         </span>
       </button>
     </div>
     <!-- The tail of a long shelf, as one row: a stack of the marks plus two names, so it reads as
          "there is more of this kind here" rather than as a bare count. -->
     <button v-if="g.rest.length" class="pt-more" @click="platShelfOpen[g.category]=true"
-            :aria-label="'Show the other '+g.rest.length+' '+g.category+' platforms'">
+            :aria-label="t('catalogPage.showOther', { n: g.rest.length, cat: g.category })">
       <span class="pt-stack">
         <span v-for="pl in g.rest.slice(0,7)" :key="pl.slug" class="pt-mini" :title="pl.label"
               :class="{gen:platLogoBad[pl.slug]}"
@@ -83,13 +83,13 @@ export default { components: { FindAnswer, CatalogSearch }, setup: useDashboard 
 
   <!-- A query that names no platform is usually a JOB, not a typo: say what missed and offer the
        finder, instead of implying the server has no catalog. -->
-  <p v-if="!platCatGroups.length && platNameQuery && plats.list.length && !findSoon && !findActive" class="find-miss">No platform is called that.</p>
-  <p v-else-if="plats.settled && !plats.list.length" class="pl-empty">This server has no catalog yet.
-    <button v-if="!publicCatalog" class="pl-link" @click="go('connections')">Connect your own accounts</button></p>
+  <p v-if="!platCatGroups.length && platNameQuery && plats.list.length && !findSoon && !findActive" class="find-miss">{{ t('catalogPage.noPlatform') }}</p>
+  <p v-else-if="plats.settled && !plats.list.length" class="pl-empty">{{ t('catalogPage.noCatalog') }}
+    <button v-if="!publicCatalog" class="pl-link" @click="go('connections')">{{ t('catalogPage.connectOwn') }}</button></p>
 
   <footer class="cat-foot">
-    <p>Missing a tool? <button class="pl-link" @click="openToolRequest()">Request a tool</button>
-      <span aria-hidden="true">·</span> Sell an API? <button class="pl-link" @click="vendorAsk=true">List as vendor</button></p>
+    <p>{{ t('catalogPage.missingTool') }} <button class="pl-link" @click="openToolRequest()">{{ t('catalogPage.requestTool') }}</button>
+      <span aria-hidden="true">·</span> {{ t('catalogPage.sellApi') }} <button class="pl-link" @click="vendorAsk=true">{{ t('catalogPage.listVendor') }}</button></p>
   </footer>
 </div>
 </template>

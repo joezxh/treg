@@ -20,20 +20,20 @@ export default { ...controller, components: { ...controller.components, ...dialo
 <div>
 <main v-if="bootFailed" class="boot-status" aria-live="polite">
   <a href="/" class="brand"><BrandMark/>treg</a>
-  <p role="alert">The dashboard couldn't load. Please try again.</p>
-  <button class="btn" @click="reloadApp()">Try again</button>
+  <p role="alert">{{ t('app.bootFailed') }}</p>
+  <button class="btn" @click="reloadApp()">{{ t('common.tryAgain') }}</button>
 </main>
 <!-- Continues index.html's loader on the page's own clock, so mounting does not restart it. -->
 <main v-else-if="!bootReady" class="boot-status" aria-busy="true" :style="{'--boot-t': -Math.round(bootStartedAt)+'ms'}">
   <span class="boot-bar" aria-hidden="true"></span>
-  <p role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap">Loading treg…</p>
+  <p role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap">{{ t('app.loading') }}</p>
 </main>
 <div v-else :class="{redesign:authed && !publicCatalog}">
   <!-- Focused sign-in entry after session initialization. -->
   <SignedOutPage v-if="!authed && !publicCatalog" />
 
   <template v-else>
-    <a href="#maincontent" class="skip">Skip to content</a>
+    <a href="#maincontent" class="skip">{{ t('app.skipToContent') }}</a>
     <!-- A public catalog visitor is reading a WEBSITE, not operating an app: the workspace chrome
          (org switcher, global tool search, member nav) is furniture for a job they have not started.
          They get the marketing site's nav instead, so /catalog reads as part of treg.to rather than
@@ -42,16 +42,16 @@ export default { ...controller, components: { ...controller.components, ...dialo
     <PublicNavigation v-else-if="publicCatalog" />
     <DashboardNavigation v-else />
     <img v-if="authed && !publicCatalog && view==='start'" class="rd-background" src="/media/redesign/ascii-background.jpg" alt="" aria-hidden="true">
-    <div v-if="startCopyError" class="rd-copy-error" role="alert">{{startCopyError}}<br><button class="btn sm" @click="startCopyError=''">Dismiss</button></div>
-    <span class="rd-sr-only" role="status">{{startCopied ? 'Copied to clipboard' : ''}}</span>
+    <div v-if="startCopyError" class="rd-copy-error" role="alert">{{startCopyError}}<br><button class="btn sm" @click="startCopyError=''">{{ t('common.dismiss') }}</button></div>
+    <span class="rd-sr-only" role="status">{{startCopied ? t('app.copiedToClipboard') : ''}}</span>
     <div class="layout" :class="{solo:publicCatalog}">
       <main id="maincontent" tabindex="-1" :class="{flush:view==='find'}">
         <div v-if="err" class="banner">{{err}}</div>
         <div v-if="pendingInvites.length" class="banner" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span>You've been invited:</span>
+          <span>{{ t('app.invited') }}</span>
           <span v-for="inv in pendingInvites" :key="inv.id" style="display:inline-flex;align-items:center;gap:6px">
             <b>{{inv.name}}</b> <span class="role" :class="inv.role">{{inv.role}}</span>
-            <button class="btn sm primary" @click="acceptInvite(inv)">Accept</button>
+            <button class="btn sm primary" @click="acceptInvite(inv)">{{ t('common.accept') }}</button>
           </span>
         </div>
 
@@ -99,22 +99,22 @@ export default { ...controller, components: { ...controller.components, ...dialo
 
     <div v-if="keyMenu" class="key-actions-menu" role="menu" :style="{top:keyMenu.top+'px',right:keyMenu.right+'px'}" @click.stop>
       <p v-if="credentialIssue" id="key-action-blocked" class="sub" style="max-width:240px;margin:0;padding:6px 10px" role="status">{{keyActionBlockReason()}}</p>
-      <button v-if="keyMenu.key.can_rename" role="menuitem" @click="editKey=keyMenu.key.id; editKeyName=keyMenu.key.name; keyMenu=null">Rename</button>
-      <button v-if="keyMenu.key.can_disable" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'disable')">Disable</button>
-      <button v-if="keyMenu.key.can_enable" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'enable')">Enable</button>
-      <button v-if="keyMenu.key.can_revoke" class="danger" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'revoke')">Revoke</button>
-      <button v-if="keyMenu.key.can_hide && keyMenu.key.state==='revoked'" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'hide')">Hide</button>
+      <button v-if="keyMenu.key.can_rename" role="menuitem" @click="editKey=keyMenu.key.id; editKeyName=keyMenu.key.name; keyMenu=null">{{ t('key.rename') }}</button>
+      <button v-if="keyMenu.key.can_disable" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'disable')">{{ t('key.disable') }}</button>
+      <button v-if="keyMenu.key.can_enable" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'enable')">{{ t('key.enable') }}</button>
+      <button v-if="keyMenu.key.can_revoke" class="danger" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'revoke')">{{ t('key.revoke') }}</button>
+      <button v-if="keyMenu.key.can_hide && keyMenu.key.state==='revoked'" role="menuitem" :disabled="!!credentialIssue" :aria-describedby="credentialIssue?'key-action-blocked':null" @click="requestKeyAction(keyMenu.key,'hide')">{{ t('key.hide') }}</button>
     </div>
 
     <div v-if="keyConfirm" class="scrim" role="dialog" aria-modal="true" aria-labelledby="key-confirm-title" v-dialog="() => { keyConfirm=null }" @click.self="keyConfirm=null">
       <div class="modal" style="width:min(470px,94vw);padding:18px 20px">
-        <h3 id="key-confirm-title" style="margin:0">{{keyConfirm.action==='rotate'?'Rotate':keyConfirm.action==='disable'?'Disable':keyConfirm.action==='revoke'?'Revoke':'Hide'}} “{{keyConfirm.key.name}}”?</h3>
-        <p v-if="keyConfirm.action==='rotate'" class="sub" style="margin:12px 0 0"><template v-if="keyConfirm.key.kind==='default_human'">This team's current Getting Started token will stop working immediately. The replacement will be shown next and remain revealable on Getting Started.</template><template v-else>The current key will stop working immediately. The replacement will be shown next so you can update every client using it.</template></p>
-        <p v-else-if="keyConfirm.action==='disable'" class="sub" style="margin:12px 0 0">Calls using this key will stop until you enable it again. Its value will not change.</p>
-        <p v-else-if="keyConfirm.action==='revoke'" class="sub" style="margin:12px 0 0"><template v-if="keyConfirm.key.kind==='agent'">This removes the agent from the team and revokes all its keys. Historical Activity will remain available.</template><template v-else>This key will stop working permanently. Historical Activity will remain available.</template></p>
-        <p v-else class="sub" style="margin:12px 0 0">This revoked key will disappear from the API Keys list. Historical Activity will remain available.</p>
+        <h3 id="key-confirm-title" style="margin:0">{{ t('key.'+keyConfirm.action) }} “{{keyConfirm.key.name}}”？</h3>
+        <p v-if="keyConfirm.action==='rotate'" class="sub" style="margin:12px 0 0"><template v-if="keyConfirm.key.kind==='default_human'">{{ t('key.rotateDefaultHumanNote') }}</template><template v-else>{{ t('key.rotateNote') }}</template></p>
+        <p v-else-if="keyConfirm.action==='disable'" class="sub" style="margin:12px 0 0">{{ t('key.disableNote') }}</p>
+        <p v-else-if="keyConfirm.action==='revoke'" class="sub" style="margin:12px 0 0"><template v-if="keyConfirm.key.kind==='agent'">{{ t('key.revokeAgentNote') }}</template><template v-else>{{ t('key.revokeNote') }}</template></p>
+        <p v-else class="sub" style="margin:12px 0 0">{{ t('key.hideNote') }}</p>
         <p v-if="credentialIssue" class="banner" role="alert" style="margin-top:12px">{{keyActionBlockReason()}}</p>
-        <div class="row-actions" style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn sm" @click="keyConfirm=null">Cancel</button><button class="btn sm" :class="{danger:keyConfirm.action!=='hide'}" :disabled="keyBusy||!!credentialIssue" @click="confirmKeyAction">{{keyBusy?'…':'Confirm '+keyConfirm.action}}</button></div>
+        <div class="row-actions" style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn sm" @click="keyConfirm=null">{{ t('common.cancel') }}</button><button class="btn sm" :class="{danger:keyConfirm.action!=='hide'}" :disabled="keyBusy||!!credentialIssue" @click="confirmKeyAction">{{keyBusy?'…':t('common.confirmAction', {action: t('key.'+keyConfirm.action)})}}</button></div>
       </div>
     </div>
 
@@ -141,10 +141,10 @@ export default { ...controller, components: { ...controller.components, ...dialo
 
     <!-- JOIN BY CODE -->
     <div class="scrim" role="dialog" aria-labelledby="join-team-title" aria-modal="true" v-if="showJoin" v-dialog="() => { showJoin=false }" @click.self="showJoin=false">
-      <div class="modal" style="width:min(460px,92vw)"><div class="hd"><b id="join-team-title">Join with an invite code</b><button class="btn sm" @click="showJoin=false" aria-label="Close">✕</button></div>
-        <div style="padding:18px"><p class="sub" style="margin-top:0">Paste the one-time code an admin gave you. It must match your email (<span class="mono">{{me}}</span>). Invites addressed to you also appear automatically as a banner.</p>
-          <div class="field"><input v-model="joinCode" placeholder="one-time invite code" @keyup.enter="joinByCode"/></div>
-          <button class="btn primary" @click="joinByCode" :disabled="joinBusy">{{joinBusy?'Joining…':'Join'}}</button>
+      <div class="modal" style="width:min(460px,92vw)"><div class="hd"><b id="join-team-title">{{ t('app.joinTitle') }}</b><button class="btn sm" @click="showJoin=false" :aria-label="t('common.close')">✕</button></div>
+        <div style="padding:18px"><p class="sub" style="margin-top:0">{{ t('app.joinBody', {email: me}) }}</p>
+          <div class="field"><input v-model="joinCode" :placeholder="t('app.joinCodePlaceholder')" @keyup.enter="joinByCode"/></div>
+          <button class="btn primary" @click="joinByCode" :disabled="joinBusy">{{joinBusy?t('app.joining'):t('common.join')}}</button>
           <div v-if="joinErr" class="banner" style="margin-top:12px">{{joinErr}}</div>
         </div></div>
     </div>
@@ -159,20 +159,20 @@ export default { ...controller, components: { ...controller.components, ...dialo
 
     <!-- CREATE TEAM -->
     <div class="scrim" role="dialog" aria-labelledby="new-team-title" aria-modal="true" v-if="newOrg" v-dialog="() => { newOrg=false }" @click.self="newOrg=false">
-      <div class="modal" style="width:min(440px,92vw)"><div class="hd"><b id="new-team-title">Create a team</b><button class="btn sm" @click="newOrg=false" aria-label="Close">✕</button></div>
-        <div style="padding:18px"><p class="sub" style="margin-top:0">You'll be its owner - invite teammates after.</p>
-          <div class="field"><input v-model="newOrgName" placeholder="Team name, e.g. Superdesign" @keyup.enter="createOrg"/></div>
-          <button class="btn primary" @click="createOrg" :disabled="orgBusy">{{orgBusy?'Creating…':'Create'}}</button>
+      <div class="modal" style="width:min(440px,92vw)"><div class="hd"><b id="new-team-title">{{ t('app.createTeamTitle') }}</b><button class="btn sm" @click="newOrg=false" :aria-label="t('common.close')">✕</button></div>
+        <div style="padding:18px"><p class="sub" style="margin-top:0">{{ t('app.createTeamBody') }}</p>
+          <div class="field"><input v-model="newOrgName" :placeholder="t('app.teamNamePlaceholder')" @keyup.enter="createOrg"/></div>
+          <button class="btn primary" @click="createOrg" :disabled="orgBusy">{{orgBusy?t('app.creating'):t('common.create')}}</button>
           <div v-if="orgErr" class="banner" style="margin-top:12px">{{orgErr}}</div>
         </div></div>
     </div>
 
     <!-- ADD ORG -->
     <div class="scrim" role="dialog" aria-labelledby="add-org-title" aria-modal="true" v-if="addOrg" v-dialog="() => { addOrg=false }" @click.self="addOrg=false">
-      <div class="modal" style="width:min(440px,92vw)"><div class="hd"><b id="add-org-title">Add an organization</b><button class="btn sm" @click="addOrg=false" aria-label="Close">✕</button></div>
-        <div style="padding:18px"><p class="sub" style="margin-top:0">Paste that org's token (each org has its own).</p>
+      <div class="modal" style="width:min(440px,92vw)"><div class="hd"><b id="add-org-title">{{ t('app.addOrgTitle') }}</b><button class="btn sm" @click="addOrg=false" :aria-label="t('common.close')">✕</button></div>
+        <div style="padding:18px"><p class="sub" style="margin-top:0">{{ t('app.addOrgBody') }}</p>
           <div class="field"><input v-model="tokenInput" type="password" placeholder="X-Treg-Token"/></div>
-          <button class="btn primary" @click="addToken(tokenInput, true)" :disabled="busy">{{busy?'Checking…':'Add'}}</button>
+          <button class="btn primary" @click="addToken(tokenInput, true)" :disabled="busy">{{busy?t('app.checking'):t('common.add')}}</button>
           <div v-if="loginErr" class="banner" style="margin-top:12px">{{loginErr}}</div>
         </div></div>
     </div>
@@ -184,19 +184,19 @@ export default { ...controller, components: { ...controller.components, ...dialo
       <div class="modal"><div class="hd"><b id="install-recipe-title">Install “{{copyRecipe.name}}”</b><button class="btn sm ico" @click="copyRecipe=null" aria-label="Close">✕</button></div>
         <div style="padding:16px 18px">
           <div class="tabs"><button v-for="t in ['CLI','Claude Code']" :key="t" :class="{active:recipeTab===t}" @click="recipeTab=t">{{t}}</button></div>
-          <p class="explain">A recipe is know-how (a <span class="mono">SKILL.md</span>), not an API - you don't call it, you <b>install</b> it into <span class="mono">.claude/skills/</span> so an agent can use it.</p>
+          <p class="explain">{{ t('app.recipeExplain') }}</p>
           <pre class="code" v-html="recipeSnip.html"></pre>
-          <div style="margin-top:12px"><button class="btn primary" @click="copy(recipeSnip.text)">⧉ {{copied?'Copied!':'Copy'}}</button></div>
+          <div style="margin-top:12px"><button class="btn primary" @click="copy(recipeSnip.text)">⧉ {{copied?t('common.copiedAlt'):t('common.copy')}}</button></div>
         </div></div>
     </div>
 
     <!-- AGENT SETUP GUIDE (an instruction to paste into a coding agent) -->
     <div class="scrim" role="dialog" aria-labelledby="agent-guide-title" aria-modal="true" v-if="agentGuide" v-dialog="() => { agentGuide=null }" @click.self="agentGuide=null">
-      <div class="modal" style="width:min(680px,95vw)"><div class="hd"><b id="agent-guide-title">{{agentGuide==='admin'?'Sync your skills &amp; secrets':'Use your team’s shared tools'}}</b><button class="btn sm ico" @click="agentGuide=null" aria-label="Close">✕</button></div>
+      <div class="modal" style="width:min(680px,95vw)"><div class="hd"><b id="agent-guide-title">{{agentGuide==='admin'?t('app.agentGuideAdminTitle'):t('app.agentGuideTitle')}}</b><button class="btn sm ico" @click="agentGuide=null" :aria-label="t('common.close')">✕</button></div>
         <div style="padding:16px 18px">
-          <p class="explain">Paste this into your coding agent (Claude Code / Codex / Gemini). One line — the agent reads llms.txt and does the rest: installs the CLI, signs in as you, and makes its first call. No API keys land on your machine.</p>
+          <p class="explain">{{ t('app.agentGuideExplain') }}</p>
           <pre class="code" style="white-space:pre-wrap;max-height:44vh;overflow:auto">{{agentPromptText}}</pre>
-          <div style="margin-top:12px;display:flex;gap:10px;align-items:center"><button class="btn primary" @click="copyAgentPrompt">⧉ {{agentGuideCopied?'Copied!':'Copy'}}</button></div>
+          <div style="margin-top:12px;display:flex;gap:10px;align-items:center"><button class="btn primary" @click="copyAgentPrompt">⧉ {{agentGuideCopied?t('common.copiedAlt'):t('common.copy')}}</button></div>
         </div></div>
     </div>
 
@@ -227,12 +227,12 @@ export default { ...controller, components: { ...controller.components, ...dialo
     <!-- Toasts, bottom right: a newer dashboard build is live, and the access reminder (fired when
          a new tool is registered while some members have customized access). -->
     <div v-if="newVersion" class="app-toast" role="status">
-      <p>A new version of the dashboard is available.</p>
-      <div class="app-toast-a"><button class="btn sm" @click="newVersion=false">Later</button><button class="btn sm primary" @click="reloadApp()">Refresh now</button></div>
+      <p>{{ t('app.newVersion') }}</p>
+      <div class="app-toast-a"><button class="btn sm" @click="newVersion=false">{{ t('common.later') }}</button><button class="btn sm primary" @click="reloadApp()">{{ t('app.refreshNow') }}</button></div>
     </div>
     <div v-if="accessNote" class="app-toast" role="status">
       <p>{{accessNote}}</p>
-      <div class="app-toast-a"><button class="btn sm" @click="accessNote=''">Dismiss</button><button class="btn sm primary" @click="go('org')">Open Team</button></div>
+      <div class="app-toast-a"><button class="btn sm" @click="accessNote=''">{{ t('common.dismiss') }}</button><button class="btn sm primary" @click="go('org')">{{ t('app.openTeam') }}</button></div>
     </div>
   </template>
 

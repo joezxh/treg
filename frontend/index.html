@@ -19,6 +19,13 @@
   // boot.js attaches its own handlers; these only keep an unused promise from logging a rejection.
   window.__tregBoot.meta.catch(function(){}); window.__tregBoot.me.catch(function(){});
   try{ document.documentElement.dataset.theme=localStorage.getItem('treg-theme')||'light'; }catch(e){}
+  // The saved locale applies before the first paint too (i18n/index.ts resolves the same way);
+  // the boot line below stays English — it is replaced the moment the app mounts.
+  try{
+    var saved=localStorage.getItem('treg-locale');
+    var lang=(saved==='en'||saved==='zh-CN')?saved:((navigator.language||'').toLowerCase().indexOf('zh')===0?'zh-CN':'en');
+    document.documentElement.lang=lang;
+  }catch(e){}
 })();
 </script>
 <!-- Deferred, so neither holds up the first paint, and still run in document order before the app

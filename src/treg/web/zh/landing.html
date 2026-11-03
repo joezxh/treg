@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>treg — 为你的代理准备的工具目录（4000+ 接口，按用量计费）</title>
+<meta name="description" content="treg 是面向 AI 代理的工具目录与代理网关：一个基础 URL、一个令牌，即可调用 4000+ 精选外部接口与团队自有工具，无需持有任何上游 API key。按调用计费，不做订阅。"/>
+<link rel="canonical" href="{BASE}/zh"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"treg","url":"{BASE}/zh","inLanguage":"zh-CN",
+ "description":"面向 AI 代理的工具目录与代理网关：一个令牌调用 4000+ 工具，按用量计费。"}
+</script>
+<style>
+:root{--ink:#1a1a1a;--sub:#7c7c7c;--bg:#fbfaf8}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg);line-height:1.7}
+a{color:inherit}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;gap:18px;padding:20px 0;font-size:14px}
+nav .brand{font-weight:700;font-size:17px;text-decoration:none;margin-right:auto}
+nav a{text-decoration:none;color:var(--sub)}nav a:hover{color:var(--ink)}
+header{padding:64px 0 40px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.25;margin:0 0 16px}
+.tag{color:var(--sub);font-size:17px;max-width:640px}
+.cta{display:inline-block;margin-top:24px;background:var(--ink);color:#f8f8f7;text-decoration:none;border-radius:999px;padding:12px 26px;font-size:14.5px}
+.cta:hover{opacity:.9}
+h2{font-size:22px;margin:56px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:20px}
+.card{background:#fff;border:1px solid #e8e5df;border-radius:12px;padding:18px 20px;font-size:14.5px}
+.card b{display:block;margin-bottom:6px;font-size:15.5px}
+.card p{margin:0;color:var(--sub)}
+code{font-family:ui-monospace,Menlo,monospace;background:#f0eee9;border-radius:5px;padding:1px 6px;font-size:13px}
+footer{margin-top:72px;padding:26px 0 40px;border-top:1px solid #e8e5df;color:var(--sub);font-size:13.5px}
+footer a{margin-right:14px;text-decoration:none}
+.socials a{margin-right:14px;text-decoration:none}
+@media(max-width:560px){header{padding:40px 0 24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <a class="brand" href="/zh">treg</a>
+  <a href="/zh/aeo">AI 可见性（AEO）</a>
+  <a href="/catalog" hreflang="en">工具目录</a>
+  <a href="/" hreflang="en">English</a>
+  <a href="/app?ref=zh" class="lang-pair">开始使用</a>
+</nav>
+
+<header>
+  <h1>一个令牌，调用 4000+ 工具。<br>代理不再需要任何上游 API key。</h1>
+  <p class="tag">treg 是面向 AI 代理（Claude Code、Codex、OpenClaw 等）的工具目录与代理网关：
+  一个基础 URL、一个团队令牌，即可调用精选的外部接口与团队自有工具。凭据由服务端注入，
+  调用按用量计费——不做订阅。</p>
+  <a class="cta" href="/app?ref=zh">免费开始（含 $1.00 试用额度）</a>
+</header>
+
+<h2>treg 解决什么问题</h2>
+<div class="grid">
+  <div class="card"><b>目录即检索</b><p>按任务描述找工具，而非按厂商名称翻文档。语义检索直接给出「该用哪个接口」。</p></div>
+  <div class="card"><b>忠实转发</b><p><code>/call/</code> 原样转发你的真实上游请求，需要凭据时在服务端注入，响应逐字返回。</p></div>
+  <div class="card"><b>自有密钥优先</b><p>团队自己的 key 永远优先，不经计量、不被路由；共享密钥按调用记账，余额透明。</p></div>
+  <div class="card"><b>可自托管</b><p>开源（Apache-2.0），一条命令起本地栈；目录、计费与代理全部可自持。</p></div>
+</div>
+
+<h2>三步接入</h2>
+<div class="grid">
+  <div class="card"><b>1 · 安装 CLI</b><p><code>curl -LsSL treg.to/install.sh | bash</code> 或直接让代理读取 <code>llms.txt</code>。</p></div>
+  <div class="card"><b>2 · 登录团队</b><p>邮箱验证码或组织令牌，一分钟内完成。</p></div>
+  <div class="card"><b>3 · 发起第一次调用</b><p><code>treg call &lt;endpoint&gt;</code> —— 之后代理自己会查目录。</p></div>
+</div>
+
+<h2>国内 AI 平台可见性</h2>
+<p class="tag">我们同时关注中文互联网的 AI 入口：了解你的产品在豆包、百度等国内答案引擎中的表现，
+参见 <a href="/zh/aeo">AEO 工作流（中文版）</a>。</p>
+
+<footer>
+  <div class="socials">{SOCIAL_LINKS}</div>
+  <p style="margin-top:14px"><a href="/" hreflang="en">English homepage</a> · <a href="/zh/aeo">AEO 中文版</a> · <a href="/terms" hreflang="en">服务条款</a> · <a href="/privacy" hreflang="en">隐私政策</a></p>
+</footer>
+</div>
+</body>
+</html>

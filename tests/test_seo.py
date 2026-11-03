@@ -41,6 +41,62 @@ async def test_robots_txt_keeps_crawlers_out_of_what_costs_or_gates(clients: Asy
     assert "Disallow: /catalog" not in body   # the catalog is the whole point of indexing us
 
 
+async def test_robots_txt_names_the_domestic_and_ai_crawlers_explicitly(clients: AsyncClient):
+    """A named crawler group follows ONLY its own rules — the `*` block does not apply to it — so
+    every bot treg names (Baidu, ByteDance, Yisou, Sogou, 360, and the AI answer engines) must
+    repeat the whole disallow list. A group that forgot would get the metered proxy for free."""
+    body = (await clients.get("/robots.txt")).text
+    disallows = [line.strip() for line in body.splitlines() if line.strip().startswith("Disallow:")]
+    expected = sorted({d.split(": ", 1)[1] for d in disallows})
+    for bot in ("Baiduspider", "Bytespider", "YisouSpider", "Sogou web spider", "360Spider",
+                "GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"):
+        section = body.split(f"User-agent: {bot}", 1)[1].split("User-agent:", 1)[0]
+        got = sorted(line.strip().removeprefix("Disallow: ") for line in section.splitlines()
+                     if line.strip().startswith("Disallow:"))
+        assert got == expected, f"{bot} is missing some of the disallow list: {set(expected) - set(got)}"
+
+
+async def test_marketing_pages_render_the_social_list_from_one_source(clients: AsyncClient):
+    """{SOCIAL_LINKS} fills from web/social.json (the same list the dashboard's
+    state/social.ts holds). Platforms the page already links by icon are not repeated."""
+    page = (await clients.get("/aeo")).text
+    assert "weibo.com/treg" in page and "/media/wechat-qr.svg" in page
+    assert "{SOCIAL_LINKS}" not in page
+    assert page.count("x.com/treg_ai") == 1   # the page's own X icon, not duplicated by the token
+
+
+# ---------------------------------------------------------------------------------- zh mirrors
+
+
+async def test_zh_mirrors_serve_chinese_pages_with_hreflang_both_ways(clients: AsyncClient):
+    """/zh pages are indexable pages of their own: zh-CN document language, their own canonical,
+    and hreflang alternates cross-linking the English page — injected, not hand-kept, so a new
+    web/zh/<name>.html gets the pair the moment it exists."""
+    zh = (await clients.get("/zh")).text
+    assert 'lang="zh-CN"' in zh and 'rel="canonical" href=' in zh
+    assert 'hreflang="zh-CN"' in zh and 'hreflang="en"' in zh
+    en = (await clients.get("/")).text
+    assert 'hreflang="zh-CN"' in en and "/zh" in en.split('hreflang="zh-CN"')[1][:80]
+    aeo = (await clients.get("/zh/aeo")).text
+    assert "豆包" in aeo and "inLanguage" in aeo
+    assert (await clients.get("/zh/no-such-page")).status_code == 404
+
+
+async def test_root_negotiates_chinese_once_only(clients: AsyncClient):
+    """A bare / for a Chinese-reading visitor 302s to /zh; an explicit cookie choice, any query
+    string, or an English browser never redirects — referrals and SSO landings stay put."""
+    r = await clients.get("/", headers={"Accept-Language": "zh-CN,zh;q=0.9"}, follow_redirects=False)
+    assert r.status_code == 302 and r.headers["location"] == "/zh"
+    assert "Accept-Language" in r.headers.get("vary", "")
+    # an explicit English choice sticks even with a Chinese browser
+    r = await clients.get("/", headers={"Accept-Language": "zh"}, cookies={"treg-locale": "en"},
+                          follow_redirects=False)
+    assert r.status_code == 200
+    # a referral landing is never redirected, whatever the browser says
+    r = await clients.get("/?ref=abc", headers={"Accept-Language": "zh"}, follow_redirects=False)
+    assert r.status_code == 200
+
+
 # -------------------------------------------------------------------------------------- sitemap
 
 async def test_sitemap_is_valid_xml_on_the_public_host(clients: AsyncClient):

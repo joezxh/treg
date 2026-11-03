@@ -22,13 +22,13 @@ export default {
       if (this.uaErr) return
       this.uaBusy = true
       try { await this.uaSet((await uploadImage('user_avatar', file, this.headers())).key) }
-      catch (e) { if (e.status === 503) this.uaOff = true; else this.uaErr = e.detail || 'The avatar could not be saved.' }
+      catch (e) { if (e.status === 503) this.uaOff = true; else this.uaErr = e.detail || this.t('avatar.saveFail') }
       finally { this.uaBusy = false }
     },
     async uaRemove() {
       this.uaBusy = true; this.uaErr = ''
       try { await this.uaSet(null) }
-      catch (e) { this.uaErr = e.detail || 'The avatar could not be removed.' }
+      catch (e) { this.uaErr = e.detail || this.t('avatar.removeFail') }
       finally { this.uaBusy = false }
     },
   },
@@ -38,18 +38,18 @@ export default {
 <template>
 <div class="scrim" role="dialog" aria-labelledby="user-avatar-title" aria-modal="true" v-dialog="() => { avatarDialog=false }" @click.self="avatarDialog=false">
   <div class="modal" style="width:min(420px,92vw)">
-    <div class="hd"><b id="user-avatar-title">Your avatar</b><button class="btn sm ico" aria-label="Close" @click="avatarDialog=false">✕</button></div>
+    <div class="hd"><b id="user-avatar-title">{{t('avatar.title')}}</b><button class="btn sm ico" :aria-label="t('common.close')" @click="avatarDialog=false">✕</button></div>
     <div style="padding:20px 18px 18px">
       <div style="display:flex;gap:18px;align-items:center">
-        <AvatarEdit v-if="uploadsOn && !uaOff" :src="meAvatar" :name="me" :size="64" round :busy="uaBusy" label="Your avatar" @file="uaUpload" />
+        <AvatarEdit v-if="uploadsOn && !uaOff" :src="meAvatar" :name="me" :size="64" round :busy="uaBusy" :label="t('avatar.title')" @file="uaUpload" />
         <Avatar v-else :src="meAvatar" :name="me" :size="64" round />
-        <p class="sub" style="margin:0;font-size:12px">Shown in the top bar and in your teams' member lists. Without one, your initials are shown.</p>
+        <p class="sub" style="margin:0;font-size:12px">{{t('avatar.shown')}}</p>
       </div>
-      <p v-if="!uploadsOn || uaOff" class="sub" style="margin:14px 0 0">Avatar uploads are not enabled on this registry.</p>
+      <p v-if="!uploadsOn || uaOff" class="sub" style="margin:14px 0 0">{{t('avatar.disabled')}}</p>
       <template v-else>
         <p class="sub" style="margin:16px 0 0;font-size:12px">{{uaHint}}</p>
         <div v-if="meAvatar" style="margin-top:12px">
-          <button class="btn" :disabled="uaBusy" @click="uaRemove">Remove avatar</button>
+          <button class="btn" :disabled="uaBusy" @click="uaRemove">{{t('avatar.remove')}}</button>
         </div>
         <p v-if="uaErr" class="banner" role="alert" style="margin:12px 0 0">{{uaErr}}</p>
       </template>

@@ -106,3 +106,10 @@ node_modules
 # Global Vue runtime copied from the npm lockfile during the frontend build.
 /src/treg/web/vendor/*.js
 /src/treg/web/vendor/LICENSE
+
+# Local dev-server logs and agent-local data (machine-specific, never shared).
+/.dev-backend.out
+/.dev-backend.err
+/.dev-frontend.out
+/.dev-frontend.err
+/.codebuddy/

@@ -27,6 +27,7 @@ import re
 import struct
 import time
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 from ..config import get_settings
 from ..domain.catalog import find_recall
@@ -74,12 +75,25 @@ class _Build:
 _build: _Build | None = None
 
 
+def _same_host(a: str, b: str) -> bool:
+    try:
+        return urlsplit(a).netloc.lower() == urlsplit(b).netloc.lower()
+    except ValueError:
+        return False
+
+
 def api_key() -> str:
-    """The embedding key: its own setting, else treg's OpenRouter key when the URL is OpenRouter's."""
+    """The embedding key: its own setting; else treg's OpenRouter key when the URL is OpenRouter's;
+    else the private SystemOne key when the URL is that deployment's own host (a private OpenAI-
+    compatible embeddings route beside the decision model, sharing one credential)."""
     s = get_settings()
     if s.find_embed_api_key:
         return s.find_embed_api_key
-    return s.platform_key_openrouter if "openrouter.ai" in s.find_embed_url else ""
+    if "openrouter.ai" in s.find_embed_url:
+        return s.platform_key_openrouter
+    if s.systemone_base_url and s.systemone_api_key and _same_host(s.find_embed_url, s.systemone_base_url):
+        return s.systemone_api_key
+    return ""
 
 
 def enabled() -> bool:

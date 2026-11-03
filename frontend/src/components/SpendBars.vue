@@ -1,5 +1,6 @@
 <script>
 import billing from '../state/billing.js'
+import { t } from '../i18n/index'
 import InfoTip from './ui/InfoTip.vue'
 import Money from './ui/Money.vue'
 
@@ -21,7 +22,7 @@ export default {
     // [{ id, name, slot?, color?, info?, members?, folded? }]; `folded` lists what Other holds ([{ id, name, micro }]). `slot` is the series' own color (the server keeps
     // it stable across filters); without one, the series takes its position's.
     series: { type: Array, required: true },
-    ariaLabel: { type: String, default: 'Billed spend' },
+    ariaLabel: { type: String, default: () => t('spend.ariaLabel') },
   },
   data: () => ({ hover: null, pointerY: 0, tipH: 80, W, H, uid: ++uid }),
   computed: {
@@ -126,10 +127,10 @@ export default {
         <template v-for="r in tip.rows" :key="r.id">
           <span><i><s :style="{ background: r.color }"></s>{{r.name}}</i><em>{{r.value}}</em></span>
           <span v-for="o in r.inside" :key="o.name" class="inside"><i>{{o.name}}</i><em>{{o.value}}</em></span>
-          <span v-if="r.more" class="inside"><i>+ {{r.more}} more</i></span>
+          <span v-if="r.more" class="inside"><i>{{ t('spend.more', { n: r.more }) }}</i></span>
         </template>
-        <span :class="{ total: tip.rows.length }"><i>{{tip.rows.length ? 'Total' : 'Spent'}}</i><em>{{tip.total}}</em></span>
-        <span v-if="tip.charges != null"><i>Charges</i><em>{{tip.charges}}</em></span>
+        <span :class="{ total: tip.rows.length }"><i>{{tip.rows.length ? t('spend.total') : t('spend.spent')}}</i><em>{{tip.total}}</em></span>
+        <span v-if="tip.charges != null"><i>{{t('spend.charges')}}</i><em>{{tip.charges}}</em></span>
       </div>
     </div>
     <div class="sb-ticks muted"><span v-for="t in ticks" :key="t.i" :style="{ left: t.left + '%' }">{{t.text}}</span></div>

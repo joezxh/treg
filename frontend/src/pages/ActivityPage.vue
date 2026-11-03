@@ -12,38 +12,47 @@ import { NO_KEY } from '../state/constants.js'
 // The feed reads left to right as one sentence: when, who (the key and runtime under it), which call
 // (the action and tags under it), how it went, what it cost.
 const FEED = [
-  { key: 'when', header: 'When' },
-  { key: 'caller', header: 'Caller', width: '22%', wrap: true },
-  { key: 'call', header: 'Call', wrap: true, mobile: 'primary' },
-  { key: 'status', header: 'Status' },
-  { key: 'cost', header: 'Cost', align: 'right' },
+  { key: 'when', headerKey: 'activity.colWhen' },
+  { key: 'caller', headerKey: 'activity.colCaller', width: '22%', wrap: true },
+  { key: 'call', headerKey: 'activity.colCall', wrap: true, mobile: 'primary' },
+  { key: 'status', headerKey: 'activity.colStatus' },
+  { key: 'cost', headerKey: 'activity.colCost', align: 'right' },
 ]
-const num = (key, header) => ({ key, header, align: 'right' })
-const BY_MEMBER = [{ key: 'member', header: 'Member', mobile: 'primary' }, num('call', 'API'), num('local_run', 'Local'), num('server_run', 'Server'), num('total', 'Total')]
-const BY_TOOL = [{ key: 'name', header: 'Tool', mobile: 'primary' }, num('total', 'Events')]
-const BY_DAY = [{ key: 'day', header: 'Day', mobile: 'primary' }, num('total', 'Events')]
-const BY_TAG = [{ key: 'value', header: 'Value', mobile: 'primary' }, num('calls', 'Calls'), num('spend', 'Spend')]
-const BY_SERIES = [{ key: 'name', header: 'Name', mobile: 'primary' }, { key: 'share', header: 'Share', width: '22%' }, num('spend', 'Spend')]
-const GROUPS = [{ value: 'day', label: 'By day' }, { value: 'week', label: 'By week' }, { value: 'month', label: 'By month' }]
-const STACKS = [{ value: 'key', label: 'API keys' }, { value: 'tool', label: 'Tools' }]
+const num = (key, headerKey) => ({ key, headerKey, align: 'right' })
+const BY_MEMBER = [{ key: 'member', headerKey: 'activity.colMember', mobile: 'primary' }, num('call', 'activity.colApi'), num('local_run', 'activity.colLocal'), num('server_run', 'activity.colServer'), num('total', 'activity.colTotal')]
+const BY_TOOL = [{ key: 'name', headerKey: 'activity.colTool', mobile: 'primary' }, num('total', 'activity.colEvents')]
+const BY_DAY = [{ key: 'day', headerKey: 'activity.colDay', mobile: 'primary' }, num('total', 'activity.colEvents')]
+const BY_TAG = [{ key: 'value', headerKey: 'activity.colValue', mobile: 'primary' }, num('calls', 'activity.colCalls'), num('spend', 'activity.colSpend')]
+const BY_SERIES = [{ key: 'name', headerKey: 'activity.colName', mobile: 'primary' }, { key: 'share', headerKey: 'activity.colShare', width: '22%' }, num('spend', 'activity.colSpend')]
+const GROUPS = [{ value: 'day', labelKey: 'activity.groupDay' }, { value: 'week', labelKey: 'activity.groupWeek' }, { value: 'month', labelKey: 'activity.groupMonth' }]
+const STACKS = [{ value: 'key', labelKey: 'activity.stackKeys' }, { value: 'tool', labelKey: 'activity.stackTools' }]
 const PAGE = 10
 const dayLabel = (iso, opts) => new Date(iso + 'T00:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC', ...opts })
 
 export default {
   components: { PageTabs, DataTable, SpendBars, SelectMenu, DateRangePicker, InfoTip, Money },
   setup: useDashboard,
-  data: () => ({ feedColumns: FEED, memberColumns: BY_MEMBER, toolColumns: BY_TOOL, dayColumns: BY_DAY, tagColumns: BY_TAG, spendColumns: BY_SERIES, GROUPS, STACKS, PAGE, NO_KEY }),
+  data: () => ({ PAGE, NO_KEY }),
   computed: {
+    // Column headers carry their own translation key; the table reads `.header` after we resolve it.
+    feedColumns() { return FEED.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    memberColumns() { return BY_MEMBER.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    toolColumns() { return BY_TOOL.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    dayColumns() { return BY_DAY.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    tagColumns() { return BY_TAG.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    spendColumns() { return BY_SERIES.map(c => ({ ...c, header: this.t(c.headerKey) })) },
+    groups() { return GROUPS.map(g => ({ value: g.value, label: this.t(g.labelKey) })) },
+    stacks() { return STACKS.map(s => ({ value: s.value, label: this.t(s.labelKey) })) },
     // The filter lists keep the current choice even when the new range has no spend for it.
     daysNewestFirst() { return [...(this.usage?.by_day || [])].reverse() },
     activityKeyOptions() {
-      return [{ value: '', label: 'All API keys' }, ...this.apiKeys.map(k => ({ value: String(k.id), label: this.keyLabel(k) }))]
+      return [{ value: '', label: this.t('activity.allApiKeys') }, ...this.apiKeys.map(k => ({ value: String(k.id), label: this.keyLabel(k) }))]
     },
     spendKeyOptions() {
-      return [{ value: '', label: 'All API keys' }, ...(this.usageSpend?.options?.keys || []).map(k => ({ value: String(k.id), label: k.name }))]
+      return [{ value: '', label: this.t('activity.allApiKeys') }, ...(this.usageSpend?.options?.keys || []).map(k => ({ value: String(k.id), label: k.name }))]
     },
     spendProviderOptions() {
-      return [{ value: '', label: 'All providers' }, ...(this.usageSpend?.options?.providers || []).map(p => ({ value: p.id, label: p.name || p.id }))]
+      return [{ value: '', label: this.t('activity.allProviders') }, ...(this.usageSpend?.options?.providers || []).map(p => ({ value: p.id, label: p.name || p.id }))]
     },
     spendSeries() {
       const noun = this.usageSpend?.stack === 'tool' ? 'tools' : 'keys'
@@ -70,7 +79,7 @@ export default {
       return u?.history_from && u.history_from > u.since.slice(0, 10) ? dayLabel(u.history_from, { month: 'short', day: 'numeric', year: 'numeric' }) : ''
     },
     historyFrom() { return this.usageSpend?.history_from ? dayLabel(this.usageSpend.history_from, { month: 'short', day: 'numeric', year: 'numeric' }) : '' },
-    actTabs() { return [{ key: 'feed', label: 'Calls' }, ...(this.canAdmin ? [{ key: 'usage', label: 'Usage' }] : [])] },
+    actTabs() { return [{ key: 'feed', label: this.t('activity.tabCalls') }, ...(this.canAdmin ? [{ key: 'usage', label: this.t('activity.tabUsage') }] : [])] },
   },
   methods: {
     pickTab(key) { this.actTab = key; if (key === 'usage') this.loadUsage() },
@@ -102,22 +111,22 @@ export default {
 <template>
 <div class="pl act">
   <header class="pl-hero">
-    <h1>Activity</h1>
-    <p class="pl-lede">Every call and run in {{activeName}}. Open a call to see its request and response.</p>
+    <h1>{{ t('activity.title') }}</h1>
+    <p class="pl-lede">{{ t('activity.lede', { name: activeName }) }}</p>
   </header>
   <!-- One page, two readings of the same traffic: the RAW FEED (every call, newest first)
        and the ROLLUPS (who/what/when, and spend per caller tag). They were separate sidebar
        entries, which made you leave one to answer a question about the other. -->
-  <PageTabs label="Activity" :tabs="actTabs" :current="actTab" @select="pickTab" />
+  <PageTabs :label="t('activity.feedLabel')" :tabs="actTabs" :current="actTab" @select="pickTab" />
 
   <template v-if="actTab==='feed'">
   <div class="cn-filters">
-    <SelectMenu v-model="activityKey" class="act-key" size="lg" icon="key" label="API key" :options="activityKeyOptions" @change="loadCalls" />
-    <div class="seg pl-seg" role="radiogroup" aria-label="Which calls">
-      <button role="radio" :aria-checked="actOkOnly" :class="{on:actOkOnly}" @click="actOkOnly=true" title="Hide failed and refused calls">Succeeded <span>{{activityOkRows.length}}</span></button>
-      <button role="radio" :aria-checked="!actOkOnly" :class="{on:!actOkOnly}" @click="actOkOnly=false" title="Include failed and refused calls">All <span>{{activityRows.length}}</span></button>
+    <SelectMenu v-model="activityKey" class="act-key" size="lg" icon="key" :label="t('activity.apiKey')" :options="activityKeyOptions" @change="loadCalls" />
+    <div class="seg pl-seg" role="radiogroup" :aria-label="t('activity.feedLabel')">
+      <button role="radio" :aria-checked="actOkOnly" :class="{on:actOkOnly}" @click="actOkOnly=true" :title="t('activity.hideFailed')">{{ t('activity.succeeded') }} <span>{{activityOkRows.length}}</span></button>
+      <button role="radio" :aria-checked="!actOkOnly" :class="{on:!actOkOnly}" @click="actOkOnly=false" :title="t('activity.includeFailed')">{{ t('activity.all') }} <span>{{activityRows.length}}</span></button>
     </div>
-    <span v-if="activityCachedCount" class="pl-meta pl-push">{{activityCachedCount}} of {{activityCallCount}} loaded {{activityCallCount===1?'call was':'calls were'}} served from the archive</span>
+    <span v-if="activityCachedCount" class="pl-meta pl-push">{{ t('activity.archiveNote', { n: activityCachedCount, m: activityCallCount, calls: activityCallCount===1 ? t('activity.callsOne') : t('activity.callsMany') }) }}</span>
   </div>
 
   <DataTable v-if="activityShown.length" class="act-feed" :columns="feedColumns" :rows="activityShown" :row-key="a => a.kind+'-'+a.id"
@@ -125,7 +134,7 @@ export default {
     <template #cell-when="{ row: a }"><span class="muted" :title="a.created_at">{{when(a.created_at)}}</span></template>
     <template #cell-caller="{ row: a }"><span class="act-who">{{activityWho(a)}}<span v-if="activityOwner(a)" class="act-dim" :title="'Agent owner: '+activityAgentKey(a).created_by"> · owner {{activityOwner(a)}}</span></span>
         <span class="pl-sub"><span v-if="a.api_key_name" class="mono">{{a.api_key_name}}<template v-if="a.api_key_prefix"> · {{a.api_key_prefix}}</template></span><span v-if="a.client && a.client!=='cli'" title="reported by the runtime: attribution, not authentication"><template v-if="a.api_key_name"> · </template>via {{a.client}}</span></span></template>
-    <template #cell-call="{ row: a }"><b class="act-tool">{{a.tool}}</b><span v-if="a.kind==='run'" class="act-kind" :title="a.where==='local'?'ran on this member\'s machine':'ran on the registry server'">{{a.where||'run'}} run</span>
+    <template #cell-call="{ row: a }"><b class="act-tool">{{a.tool}}</b><span v-if="a.kind==='run'" class="act-kind" :title="a.where==='local'?t('activity.ranLocal'):t('activity.ranServer')">{{a.where||'run'}} run</span>
         <span class="pl-sub mono">{{a.action}}</span>
         <span v-if="a.tags || (a.task && (a.task.result_url||a.task.fetch_command))" class="act-extra">
           <span v-for="(v,k) in a.tags" :key="k" class="chip act-tag" :title="'X-Treg-Meta '+k+'='+v">{{k}}={{v}}</span>
@@ -133,12 +142,12 @@ export default {
           <template v-if="a.task"><a v-if="a.task.result_url" :href="a.task.result_url" target="_blank" rel="noopener" class="act-link" :title="taskArtifactTitle(a.task)" @click.stop>result ↗</a><span v-else-if="a.task.fetch_command" class="chip act-tag" :title="'retrieve it from the CLI: '+a.task.fetch_command">result via CLI</span><span v-if="a.task.result_url||a.task.fetch_command" class="act-dim"> {{a.task.ttl_note?'expires in '+a.task.ttl_note:'time-limited link'}}</span></template>
         </span></template>
     <template #cell-status="{ row: a }"><span class="act-st" :class="a.ok?'ok':'bad'">{{a.status}}</span><span v-if="a.task" class="act-st pending" :title="taskStateTitle(a.task)">{{taskStateLabel(a.task)}}</span><span v-if="a.has_result" class="act-view">Result ›</span></template>
-    <template #cell-cost="{ row: a }"><span class="act-cost" :title="a.held?'reserved - settles when the task finishes, refunded if it fails':(a.tier==='platform'?'charged to team balance':(a.cost!=null?'estimated - billed to your own provider key':''))">
-        <span v-if="a.cached" class="act-cached" title="Served from treg's archive instead of calling the provider.">Cached</span><span v-if="a.held" class="act-dim">hold </span>{{a.cost!=null?money(a.cost):'-'}}</span></template>
+    <template #cell-cost="{ row: a }"><span class="act-cost" :title="a.held?t('activity.holdTitle'):(a.tier==='platform'?t('activity.teamBalanceTitle'):(a.cost!=null?t('activity.estimatedTitle'):''))">
+        <span v-if="a.cached" class="act-cached" :title="t('activity.cachedTitle')">{{ t('activity.cached') }}</span><span v-if="a.held" class="act-dim">hold </span>{{a.cost!=null?money(a.cost):'-'}}</span></template>
   </DataTable>
-  <p v-if="callsLoaded && !activityRows.length" class="pl-empty">No activity yet. Calls your agents make show up here.</p>
-  <p v-else-if="callsLoaded && !activityShown.length" class="pl-empty">{{activityHasOlder?"None of the loaded calls succeeded.":"No successful calls yet."}} <button class="pl-link" @click="actOkOnly=false">Show all {{activityRows.length}}</button></p>
-  <button v-if="callsLoaded && activityHasOlder" class="pl-link pl-more-rows" :disabled="activityOlderBusy" @click="loadOlderActivity">{{activityOlderBusy?'Loading…':'Load older activity'}}</button>
+  <p v-if="callsLoaded && !activityRows.length" class="pl-empty">{{ t('activity.noActivity') }}</p>
+  <p v-else-if="callsLoaded && !activityShown.length" class="pl-empty">{{ activityHasOlder ? t('activity.noneSucceeded') : t('activity.noSuccessful') }} <button class="pl-link" @click="actOkOnly=false">{{ t('activity.showAll', { n: activityRows.length }) }}</button></p>
+  <button v-if="callsLoaded && activityHasOlder" class="pl-link pl-more-rows" :disabled="activityOlderBusy" @click="loadOlderActivity">{{ activityOlderBusy ? t('common.loading') : t('activity.loadOlder') }}</button>
   </template>
 
   <template v-if="canAdmin && actTab==='usage'">
@@ -148,54 +157,54 @@ export default {
   <section class="us-card" :aria-busy="usageSpendBusy">
     <header class="us-card-head">
       <div>
-        <h2>Spend</h2>
-        <p class="muted">Billed charges on treg's keys, from the ledger. Days are UTC.<template v-if="historyFrom"> History starts on {{historyFrom}}.</template></p>
+        <h2>{{ t('activity.spend') }}</h2>
+        <p class="muted">{{ t('activity.spendLede') }}<template v-if="historyFrom">{{ t('activity.historyStart', { date: historyFrom }) }}</template></p>
       </div>
       <div v-if="usageSpend && usageSpend.ready" class="us-totals">
-        <div><b><Money :micro="usageSpend.spent_micro" /></b><span>spent</span></div>
-        <div><b>{{usageSpend.charges}}</b><span>{{usageSpend.charges === 1 ? 'charge' : 'charges'}}</span></div>
+        <div><b><Money :micro="usageSpend.spent_micro" /></b><span>{{ t('activity.spent') }}</span></div>
+        <div><b>{{usageSpend.charges}}</b><span>{{usageSpend.charges === 1 ? t('activity.chargeOne') : t('activity.charges')}}</span></div>
       </div>
     </header>
     <div v-if="usageSpend && usageSpend.ready" class="us-filters">
-      <div class="us-filter"><span>Date range</span>
+      <div class="us-filter"><span>{{ t('activity.dateRange') }}</span>
         <DateRangePicker :model-value="spendRange" :min="usageSpend.history_from" @change="setSpendRange" /></div>
-      <div class="us-filter"><span>Group by</span>
-        <SelectMenu v-model="spendFilter.group" icon="clock" label="Group by" :options="GROUPS" @change="loadUsageSpend" /></div>
-      <div class="us-filter"><span>API key</span>
-        <SelectMenu v-model="spendFilter.key" icon="key" label="API key" :options="spendKeyOptions" @change="loadUsageSpend" /></div>
-      <div class="us-filter"><span>Provider</span>
-        <SelectMenu v-model="spendFilter.provider" icon="plug" label="Provider" :options="spendProviderOptions" @change="loadUsageSpend" /></div>
+      <div class="us-filter"><span>{{ t('activity.groupby') }}</span>
+        <SelectMenu v-model="spendFilter.group" icon="clock" :label="t('activity.groupby')" :options="groups" @change="loadUsageSpend" /></div>
+      <div class="us-filter"><span>{{ t('activity.apiKey') }}</span>
+        <SelectMenu v-model="spendFilter.key" icon="key" :label="t('activity.apiKey')" :options="spendKeyOptions" @change="loadUsageSpend" /></div>
+      <div class="us-filter"><span>{{ t('activity.provider') }}</span>
+        <SelectMenu v-model="spendFilter.provider" icon="plug" :label="t('activity.provider')" :options="spendProviderOptions" @change="loadUsageSpend" /></div>
       <!-- Stacking by tool only reads within one provider: across all of them it is hundreds of series. -->
-      <div v-if="spendFilter.provider" class="us-filter"><span>Stack by</span>
-        <SelectMenu v-model="spendFilter.stack" icon="layers" label="Stack by" :options="STACKS" @change="loadUsageSpend" /></div>
-      <button v-if="spendFilter.key || spendFilter.provider || spendFilter.group!=='day'" class="pl-link us-clear" @click="clearSpendFilters">Clear filters</button>
+      <div v-if="spendFilter.provider" class="us-filter"><span>{{ t('activity.stackBy') }}</span>
+        <SelectMenu v-model="spendFilter.stack" icon="layers" :label="t('activity.stackBy')" :options="stacks" @change="loadUsageSpend" /></div>
+      <button v-if="spendFilter.key || spendFilter.provider || spendFilter.group!=='day'" class="pl-link us-clear" @click="clearSpendFilters">{{ t('activity.clearFilters') }}</button>
     </div>
     <div class="us-card-body" :class="{ busy: usageSpendBusy && usageSpend }">
       <p v-if="usageSpendErr" class="pl-empty">{{usageSpendErr}}</p>
-      <p v-else-if="!usageSpend" class="pl-empty">Loading spend…</p>
-      <p v-else-if="!usageSpend.ready" class="pl-empty">Spend history is being prepared. It will appear here within a few days.</p>
-      <p v-else-if="!usageSpend.spent_micro" class="pl-empty">No billed charges in this range.</p>
+      <p v-else-if="!usageSpend" class="pl-empty">{{ t('activity.loadingSpend') }}</p>
+      <p v-else-if="!usageSpend.ready" class="pl-empty">{{ t('activity.spendPrep') }}</p>
+      <p v-else-if="!usageSpend.spent_micro" class="pl-empty">{{ t('activity.noCharges') }}</p>
       <template v-else>
         <SpendBars :buckets="spendBuckets" :series="spendSeries"
                    :aria-label="`Billed spend by ${usageSpend.group}: ${moneyGlance(usageSpend.spent_micro)} from ${usageSpend.from} to ${usageSpend.to}`" />
         <!-- Every series, none folded: the chart can color seven, a list can name them all. A key's
              row filters the chart to it; the chart answers "when", this list "who". -->
         <button type="button" class="us-rank-toggle" :aria-expanded="spendRankOpen" aria-controls="us-ranking" @click="spendRankOpen=!spendRankOpen">
-          {{usageSpend.stack==='tool' ? 'Spend per tool' : 'Spend per API key'}}
+          {{usageSpend.stack==='tool' ? t('activity.spendPerTool') : t('activity.spendPerKey')}}
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" /></svg>
         </button>
         <div id="us-ranking" class="us-ranking" :class="{ open: spendRankOpen }" :inert="!spendRankOpen"><div class="us-ranking-inner">
           <DataTable :columns="spendColumns" :rows="page(usageSpend.ranking, spendRankPage)" :row-key="r => r.id" surface
                      :interactive="usageSpend.stack==='key'" @row-click="pickRankRow">
-            <template #head-name>{{usageSpend.stack==='tool' ? 'Tool' : 'API key'}}</template>
+            <template #head-name>{{usageSpend.stack==='tool' ? t('activity.colTool') : t('activity.apiKey')}}</template>
             <template #cell-name="{ row: r }"><span class="us-rank-name"><s :style="{ background: rankColor(r) }"></s><span :title="r.name">{{r.name}}</span><InfoTip v-if="r.id==='none'" :title="NO_KEY.title" :text="NO_KEY.text" /></span></template>
             <template #cell-share="{ row: r }"><span class="us-share"><i :style="{ width: share(r) + '%' }"></i></span><span class="muted">{{share(r)}}%</span></template>
             <template #cell-spend="{ row: r }"><b><Money :micro="r.spent_micro" /></b></template>
           </DataTable>
           <div v-if="usageSpend.ranking.length > PAGE" class="us-pager">
             <span class="muted">{{pageLabel(usageSpend.ranking, spendRankPage)}}</span>
-            <button class="btn sm" :disabled="!spendRankPage" @click="spendRankPage--">Previous</button>
-            <button class="btn sm" :disabled="(spendRankPage+1)*PAGE >= usageSpend.ranking.length" @click="spendRankPage++">Next</button>
+            <button class="btn sm" :disabled="!spendRankPage" @click="spendRankPage--">{{ t('activity.previous') }}</button>
+            <button class="btn sm" :disabled="(spendRankPage+1)*PAGE >= usageSpend.ranking.length" @click="spendRankPage++">{{ t('activity.next') }}</button>
           </div>
         </div></div>
       </template>
@@ -203,25 +212,25 @@ export default {
   </section>
 
   <div class="cn-filters">
-    <div class="seg pl-seg" role="radiogroup" aria-label="Window">
-      <button v-for="d in [7,30,90]" :key="d" role="radio" :aria-checked="usageDays===d" :class="{on:usageDays===d}" @click="usageDays=d; usageToolPage=0; usageDayPage=0; loadUsageCounts(); loadTagUsage()">{{d}} days</button>
+    <div class="seg pl-seg" role="radiogroup" :aria-label="t('activity.window')">
+      <button v-for="d in [7,30,90]" :key="d" role="radio" :aria-checked="usageDays===d" :class="{on:usageDays===d}" @click="usageDays=d; usageToolPage=0; usageDayPage=0; loadUsageCounts(); loadTagUsage()">{{ t('activity.days', { d }) }}</button>
     </div>
-    <span class="pl-meta pl-push">Counts only. No request or response content is stored.</span>
+    <span class="pl-meta pl-push">{{ t('activity.countsOnly') }}</span>
   </div>
 
   <p v-if="usageErr" class="pl-empty">{{usageErr}}</p>
-  <p v-else-if="!usage" class="pl-empty">Loading counts…</p>
-  <p v-else-if="usage.ready === false" class="pl-empty">Usage counts are being prepared. Check back in a few hours.</p>
+  <p v-else-if="!usage" class="pl-empty">{{ t('activity.loadingCounts') }}</p>
+  <p v-else-if="usage.ready === false" class="pl-empty">{{ t('activity.usagePrep') }}</p>
   <template v-else>
-    <p v-if="usageCountsFrom" class="pl-meta">Counted from {{usageCountsFrom}}, when usage history begins.</p>
+    <p v-if="usageCountsFrom" class="pl-meta">{{ t('activity.countedFrom', { date: usageCountsFrom }) }}</p>
     <div class="act-stats">
-      <div v-for="[n, l] in [[usage.totals.total, 'Total events'], [usage.totals.call, 'API calls'], [usage.totals.local_run, 'Local runs'], [usage.totals.server_run, 'Server runs']]"
-           :key="l" class="pl-card act-stat"><b>{{n}}</b><span>{{l}}</span></div>
+      <div v-for="s in [{n:usage.totals.total, l:t('activity.statTotal')}, {n:usage.totals.call, l:t('activity.statApi')}, {n:usage.totals.local_run, l:t('activity.statLocal')}, {n:usage.totals.server_run, l:t('activity.statServer')}]"
+           :key="s.l" class="pl-card act-stat"><b>{{s.n}}</b><span>{{s.l}}</span></div>
     </div>
 
     <section class="pl-sec">
-      <h2 class="pl-h"><span>By member</span><i></i><em>{{usage.by_user.length}}</em></h2>
-      <DataTable :columns="memberColumns" :rows="usage.by_user" :row-key="u => u.user_email" surface empty="No usage in this window.">
+      <h2 class="pl-h"><span>{{ t('activity.byMember') }}</span><i></i><em>{{usage.by_user.length}}</em></h2>
+      <DataTable :columns="memberColumns" :rows="usage.by_user" :row-key="u => u.user_email" surface :empty="t('activity.noUsage')">
         <template #cell-member="{ row: u }">{{short(u.user_email)}}</template>
         <template #cell-total="{ row: u }"><b>{{u.total}}</b></template>
       </DataTable>
@@ -230,23 +239,23 @@ export default {
     <div class="act-pair">
       <!-- Ten rows at a time, paged here: one request already holds every row, so Next is free. -->
       <section v-if="usage.by_tool.length" class="pl-sec">
-        <h2 class="pl-h"><span>Top tools</span><i></i><em>{{usage.by_tool.length}}</em></h2>
+        <h2 class="pl-h"><span>{{ t('activity.topTools') }}</span><i></i><em>{{usage.by_tool.length}}</em></h2>
         <DataTable :columns="toolColumns" :rows="page(usage.by_tool, usageToolPage)" :row-key="t => t.name" surface />
         <div v-if="usage.by_tool.length > PAGE" class="us-pager">
           <span class="muted">{{pageLabel(usage.by_tool, usageToolPage)}}</span>
-          <button class="btn sm" :disabled="!usageToolPage" @click="usageToolPage--">Previous</button>
-          <button class="btn sm" :disabled="(usageToolPage+1)*PAGE >= usage.by_tool.length" @click="usageToolPage++">Next</button>
+          <button class="btn sm" :disabled="!usageToolPage" @click="usageToolPage--">{{ t('activity.previous') }}</button>
+          <button class="btn sm" :disabled="(usageToolPage+1)*PAGE >= usage.by_tool.length" @click="usageToolPage++">{{ t('activity.next') }}</button>
         </div>
       </section>
       <section v-if="usage.by_day.length" class="pl-sec">
-        <h2 class="pl-h"><span>Per day</span><i></i><em>{{usage.by_day.length}}</em></h2>
+        <h2 class="pl-h"><span>{{ t('activity.perDay') }}</span><i></i><em>{{usage.by_day.length}}</em></h2>
         <DataTable :columns="dayColumns" :rows="page(daysNewestFirst, usageDayPage)" :row-key="d => d.day" surface>
           <template #cell-day="{ row: d }"><span class="mono muted">{{d.day}}</span></template>
         </DataTable>
         <div v-if="usage.by_day.length > PAGE" class="us-pager">
           <span class="muted">{{pageLabel(usage.by_day, usageDayPage)}}</span>
-          <button class="btn sm" :disabled="!usageDayPage" @click="usageDayPage--">Newer</button>
-          <button class="btn sm" :disabled="(usageDayPage+1)*PAGE >= usage.by_day.length" @click="usageDayPage++">Older</button>
+          <button class="btn sm" :disabled="!usageDayPage" @click="usageDayPage--">{{ t('activity.newer') }}</button>
+          <button class="btn sm" :disabled="(usageDayPage+1)*PAGE >= usage.by_day.length" @click="usageDayPage++">{{ t('activity.older') }}</button>
         </div>
       </section>
     </div>
@@ -262,10 +271,9 @@ export default {
          invoices from, so it has to be complete. -->
     <template v-for="key in tagKeys" :key="key">
       <section v-if="tagUsage[key]" class="pl-sec">
-        <h2 class="pl-h"><span>Spend by {{key}}</span><i></i><em title="a caller tag from X-Treg-Meta">X-Treg-Meta</em></h2>
-        <p class="cat-hint">What each <b>{{key}}</b> spent, from the ledger. A call is credited in full to every
-          tag it carries, so these sections are different slices of the same money: never add two of them together.</p>
-        <DataTable :columns="tagColumns" :rows="tagRows(key)" :row-key="r => r.value ?? '(untagged)'" surface :empty="'Nothing tagged '+key+' in this window.'">
+        <h2 class="pl-h"><span>{{ t('activity.spendBy', { key }) }}</span><i></i><em title="a caller tag from X-Treg-Meta">X-Treg-Meta</em></h2>
+        <p class="cat-hint" v-html="t('activity.spendByLede', { key })"></p>
+        <DataTable :columns="tagColumns" :rows="tagRows(key)" :row-key="r => r.value ?? '(untagged)'" surface :empty="t('activity.nothingTagged', { key })">
           <template #head-value>{{key}}</template>
           <template #cell-value="{ row: r }"><span v-if="r.value" class="chip">{{r.value}}</span><span v-else class="muted" title="calls carrying no value for this tag - shown, never dropped">untagged</span></template>
           <template #cell-calls="{ row: r }"><span class="muted">{{r.calls ?? '-'}}</span></template>

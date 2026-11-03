@@ -1,6 +1,10 @@
 # treg — the tool catalog for your agent.
 # The catalog is meant to be found: /catalog and its per-platform shelves are open to every crawler.
 # What is disallowed below is either private, meaningless without a session, or costs money to call.
+#
+# A crawler named in its own group follows ONLY that group's rules — the `User-agent: *` block
+# does not apply to it. So every named bot below repeats the same disallow list; keep the blocks
+# in sync when a path is added (tests/test_seo.py pins this).
 
 User-agent: *
 Allow: /
@@ -25,6 +29,124 @@ Disallow: /admin
 
 # The interactive API console. The same API is documented in server-rendered HTML at /docs, which
 # is the copy worth indexing.
+Disallow: /docs/api
+
+# ——— Domestic (China) search and AI crawlers, named explicitly so their operators' docs ———
+# ——— and dashboards see an unambiguous welcome. Same disallows as `*`, verbatim.      ———
+
+# Baidu web search and Baidu's AI answer surfaces (百度搜索/文心一言检索).
+User-agent: Baiduspider
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+# ByteDance web search and Doubao's retrieval (字节搜索/豆包检索).
+User-agent: Bytespider
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+# Alibaba's mobile/web search feeding Qwen answer surfaces (阿里神马/夸克检索).
+User-agent: YisouSpider
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+# Sogou web search (搜狗搜索).
+User-agent: Sogou web spider
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+# 360 web search (奇虎 360 搜索).
+User-agent: 360Spider
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+# ——— International AI answer engines, by name for the same reason. ———
+
+User-agent: GPTBot
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
+Disallow: /docs/api
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /app
+Disallow: /login
+Disallow: /auth/
+Disallow: /oauth/
+Disallow: /connect-demo
+Disallow: /call/
+Disallow: /mcp
+Disallow: /admin
 Disallow: /docs/api
 
 # An agent looking for machine-readable onboarding wants this, not the sitemap:

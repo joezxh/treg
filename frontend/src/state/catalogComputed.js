@@ -217,11 +217,11 @@ platComparisonRows(){
 // The comparison's columns (components/ui/table DataTable). Price sorts cheapest first, the two
     // measured columns best first; every heading explains its number.
     comparisonColumns(){ const t=COL_TIPS; return [
-      {key:'provider', header:'Provider', mobile:'primary', minWidth:'240px', wrap:true},
-      {key:'takes', header:'Takes', tip:t.takes, minWidth:'150px', wrap:true, mobile:'wide'},
-      {key:'price', header:'Price', tip:t.price, align:'right', sortable:true, sortFirst:'asc'},
-      {key:'works', header:'Works', tip:t.works, align:'right', sortable:true, sortFirst:'desc'},
-      {key:'useful', header:'Reviews', tip:t.useful, align:'right', sortable:true, sortFirst:'desc', minWidth:'132px'}]; },
+      {key:'provider', headerKey:'platform.colProvider', mobile:'primary', minWidth:'240px', wrap:true},
+      {key:'takes', headerKey:'platform.colTakes', tip:t.takes, minWidth:'150px', wrap:true, mobile:'wide'},
+      {key:'price', headerKey:'platform.colPrice', tip:t.price, align:'right', sortable:true, sortFirst:'asc'},
+      {key:'works', headerKey:'platform.colWorks', tip:t.works, align:'right', sortable:true, sortFirst:'desc'},
+      {key:'useful', headerKey:'platform.colReviews', tip:t.useful, align:'right', sortable:true, sortFirst:'desc', minWidth:'132px'}]; },
 platOtherComparisons(){ return this.platComparisons.filter(j=>j!==this.platComparison).slice(0,6); },
 drawerIds(){
       if(this.view==='provider') return [...this.mkToolShelves.flatMap(p=>p.tools), ...this.mkToolShelves.flatMap(p=>p.plumbing)].map(t=>t.id);

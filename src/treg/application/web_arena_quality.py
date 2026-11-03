@@ -12,6 +12,7 @@ from sqlalchemy import update
 
 from ..config import get_settings
 from ..domain import web_arena as rules
+from ..infra import llm as llm_infra
 from ..infra.db import session_maker
 from ..models import WebArenaJudgeBudget
 
@@ -20,10 +21,17 @@ JEV_URL = "https://ai-gateway.vercel.sh/v4/ai/evaluation-model"
 CHAT_URL = "https://ai-gateway.vercel.sh/v1/chat/completions"
 
 
+def _internal_configured() -> bool:
+    """A private SystemOne-compatible endpoint (Bailian's decision model, a self-hosted SystemOne)
+    fully configured: it answers the JEV check instead of the Vercel AI Gateway."""
+    s = get_settings()
+    return bool(s.systemone_base_url and s.systemone_api_key and s.systemone_model)
+
+
 async def _take_budget(user_id: int) -> bool:
     """Admit one external quality call; commit before the network request."""
     settings = get_settings()
-    if not settings.ai_gateway_api_key:
+    if not (settings.ai_gateway_api_key or _internal_configured()):
         return False
     if settings.local_dev:
         return True
@@ -51,6 +59,15 @@ async def _jev(state: dict, questions: dict, user_id: int) -> tuple[dict | None,
     if not await _take_budget(user_id):
         return None, {"state": "budget_unavailable"}
     began = time.monotonic()
+    if _internal_configured():
+        # The private SystemOne endpoint speaks the same {state, questions} → {answers} protocol;
+        # `infra.llm.systemone` never raises and usage pricing here is its owner's, so no cost.
+        settings = get_settings()
+        answers, meta = await llm_infra.systemone(
+            state, questions, base_url=settings.systemone_base_url, api_key=settings.systemone_api_key,
+            model=settings.systemone_model, timeout_s=float(settings.systemone_timeout_s),
+            auth_scheme=settings.systemone_auth_scheme)
+        return answers, {"jev_ms": meta["ms"], "jev_cost_usd": None}
     try:
         async with httpx.AsyncClient(timeout=30) as http:
             response = await http.post(JEV_URL, headers={"Authorization": f"Bearer {get_settings().ai_gateway_api_key}",

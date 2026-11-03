@@ -1,0 +1,13 @@
+{
+  "comment": "The one list of treg's social accounts for the marketing pages, in the same shape as frontend/src/state/social.ts (edit both together until a build step shares them). kind 'qrcode' (WeChat has no web profile) links to the QR image. The China-platform and Facebook URLs are placeholders: replace with the real profile URL the day the account is opened.",
+  "links": [
+    { "platform": "github", "label": "GitHub", "url": "https://github.com/superdesigndev/treg", "kind": "link" },
+    { "platform": "discord", "label": "Discord", "url": "https://discord.gg/6mQYYfFMAn", "kind": "link" },
+    { "platform": "x", "label": "X", "url": "https://x.com/treg_ai", "kind": "link" },
+    { "platform": "facebook", "label": "Facebook", "url": "https://www.facebook.com/treg", "kind": "link" },
+    { "platform": "weibo", "label": "微博", "url": "https://weibo.com/treg", "kind": "link" },
+    { "platform": "xiaohongshu", "label": "小红书", "url": "https://www.xiaohongshu.com/user/treg", "kind": "link" },
+    { "platform": "douyin", "label": "抖音", "url": "https://www.douyin.com/@treg", "kind": "link" },
+    { "platform": "wechat", "label": "微信", "url": "/media/wechat-qr.svg", "kind": "qrcode" }
+  ]
+}

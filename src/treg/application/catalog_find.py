@@ -188,6 +188,17 @@ def names_a_platform(query: str, cat: catalog_store.Catalog) -> bool:
     return any(_is_named(query.lower(), slug, p) for slug, p in cat.platforms.items())
 
 
+def judge_endpoint() -> tuple[str, str, str, float] | None:
+    """The judge's endpoint when a PRIVATE SystemOne-compatible deployment is configured
+    (Bailian's decision model, a self-hosted SystemOne): (url, model, api_key, timeout_s).
+    None = TypeSafe's own — each caller then keeps its own timeout budget."""
+    s = get_settings()
+    if s.systemone_base_url and s.systemone_api_key and s.systemone_model:
+        return (s.systemone_base_url, s.systemone_model, s.systemone_api_key,
+                float(s.systemone_timeout_s))
+    return None
+
+
 async def judge(query: str, cands: list[tuple[dict, float]], cat: catalog_store.Catalog,
                 provider_display, platform: str | None = None) -> Judged:
     """Judge the recall and decide the verdict. Never raises: an abstaining judge yields the
@@ -198,8 +209,10 @@ async def judge(query: str, cands: list[tuple[dict, float]], cat: catalog_store.
     s = get_settings()
     views = [judge_infra.candidate_view(ep, cat.capabilities.get(ep.get("capability") or "", ""))
              for ep, _ in cands]
-    j = await judge_infra.judge(query, views, api_key=s.typesafe_api_key, model=s.typesafe_model,
-                                url=s.typesafe_url, timeout_s=float(s.find_timeout_s),
+    url, model, api_key, budget = judge_endpoint() or (s.typesafe_url, s.typesafe_model,
+                                                       s.typesafe_api_key, float(s.find_timeout_s))
+    j = await judge_infra.judge(query, views, api_key=api_key, model=model, url=url,
+                                timeout_s=budget,
                                 criteria=FIT_CRITERIA, extra={"name": NAME_QUESTION} if views else None)
     if j.probs is None:
         hit = find_recall.name_of(query, find_recall.index(cat), platform, provider_display)
@@ -432,10 +445,12 @@ async def judge_v2(query: str, cands: list[find_recall.Candidate], cat: catalog_
     extra = {"name": NAME_QUESTION}
     if platform is None:
         extra["plat"] = platform_question(find_recall.index(cat))
+    url, model, api_key, budget = judge_endpoint() or (
+        s.typesafe_url, s.typesafe_model, s.typesafe_api_key,
+        float(s.find_timeout_s if timeout_s is None else timeout_s))
     return await judge_infra.judge(
-        query, [_unit_view(c.unit, cat) for c in cands], api_key=s.typesafe_api_key,
-        model=s.typesafe_model, url=s.typesafe_url,
-        timeout_s=float(s.find_timeout_s if timeout_s is None else timeout_s),
+        query, [_unit_view(c.unit, cat) for c in cands], api_key=api_key, model=model, url=url,
+        timeout_s=budget,
         criteria=FIT_CRITERIA, job_criteria=JOB_CRITERIA, extra=extra)
 
 

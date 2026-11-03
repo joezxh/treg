@@ -201,6 +201,8 @@ _CONTROL_ROUTE_KEYS: frozenset[RouteKey] = frozenset({
     ('/gpt6', ('GET',), 'gpt6_page'),
     ('/ugc', ('GET',), 'ugc_page'),
     ('/aeo', ('GET',), 'aeo_page'),
+    ('/zh', ('GET',), 'zh_landing'),
+    ('/zh/{page}', ('GET',), 'zh_page'),
     ('/rea-growth', ('GET',), 'rea_growth_page'),
     ('/rea-growth.md', ('GET',), 'rea_growth_md'),
     ('/showcase', ('GET',), 'showcase_page'),
